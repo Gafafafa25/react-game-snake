@@ -70,7 +70,7 @@ const Game = () => {
 
     return (
         <>
-            <h3>Snake</h3>
+            <h1 className="text-red-200">Snake</h1>
             <canvas id="game" width="400" height="400"></canvas>
         </>
     )
