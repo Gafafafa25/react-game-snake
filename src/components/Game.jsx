@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {useEffect, useState, useRef} from "react";
 
 
 const Game = () => {
@@ -9,9 +9,19 @@ const Game = () => {
         { x: 6, y: 5 },
         { x: 7, y: 5 }
     ])
-
+    const canvasRef = useRef(null)
+    const fruitImgRef = useRef(null)
+    useEffect(() => {
+        const fruitImg = new Image()
+        fruitImg.src = '../assets/fruit.png'
+        fruitImg.onload = () => {
+            fruitImgRef.current = fruitImg
+        }
+    }, [])
 
     function drawCube(x, y) {  // отрисовать элемент змейки (квадратик)
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')
         ctx.fillRect(x * size, y * size, size, size)
     }
 
@@ -44,6 +54,8 @@ const Game = () => {
 
     const game = () => {
         console.log("playing game...")
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         move()  // сдвиг змейки
         drawSnake() // отрисовка змейки
@@ -72,7 +84,7 @@ const Game = () => {
         <>
             <h1 className="text-red-600">Snake</h1>
             <div className="text-red-500">Test</div>
-            <canvas id="game" width="400" height="400"></canvas>
+            <canvas ref={canvasRef} width={400} height={400}/>
         </>
     )
 }
