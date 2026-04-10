@@ -5,31 +5,58 @@ const Game = () => {
     const [size, setSize] = useState(20)
     const [direction, setDirection] = useState({dx: 1, dy: 0})
     const [snake] = useState([
-        { x: 5, y: 5 },
-        { x: 6, y: 5 },
-        { x: 7, y: 5 }
+        {x: 5, y: 5},
+        {x: 6, y: 5},
+        {x: 7, y: 5}
     ])
     const canvasRef = useRef(null)
-    const fruitImgRef = useRef(null)
+    // const fruitImgRef = useRef(null)
+    const [score, setScore] = useState(0)
+    const [food, setFood] = useState({
+        x: Math.floor(Math.random() * size),
+        y: Math.floor(Math.random() * size)
+    })
+
+    // useEffect(() => {
+    //     const fruitImg = new Image()
+    //     fruitImg.src = '../assets/fruit.png'
+    //     fruitImg.onload = () => {
+    //         fruitImgRef.current = fruitImg
+    //     }
+    // }, [])
+
     useEffect(() => {
-        const fruitImg = new Image()
-        fruitImg.src = '../assets/fruit.png'
-        fruitImg.onload = () => {
-            fruitImgRef.current = fruitImg
+        if (snake[0].x === food.x && snake[0].y === food.y) {
+            setFood({
+                x: Math.floor(Math.random() * size),
+                y: Math.floor(Math.random() * size)
+            })
+            setScore(score + 1)
         }
-    }, [])
+    }, [snake])
 
     function drawCube(x, y) {  // отрисовать элемент змейки (квадратик)
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
+        ctx.fillStyle = 'green'
         ctx.fillRect(x * size, y * size, size, size)
     }
 
     function drawSnake() {  // отрисовать всю змейку
         for (let part of snake) {
             drawCube(part.x, part.y)
+            drawFruit()
         }
     }
+
+    function drawFruit() {
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')
+        ctx.fillStyle = 'red'
+        ctx.fillRect(food.x, food.y, size, size)
+    }
+
+    // setFood(drawFruit())
 
     function move() {  // сдвиг змейки на dx/dy
         // решение только тут
@@ -70,10 +97,22 @@ const Game = () => {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            if(e.key==="ArrowUp"){direction.dx=0;direction.dy=-1}
-            if(e.key==="ArrowDown"){direction.dx=0;direction.dy=1}
-            if(e.key==="ArrowLeft"){direction.dx=-1;direction.dy=0}
-            if(e.key==="ArrowRight"){direction.dx=1;direction.dy=0}
+            if (e.key === "ArrowUp") {
+                direction.dx = 0;
+                direction.dy = -1
+            }
+            if (e.key === "ArrowDown") {
+                direction.dx = 0;
+                direction.dy = 1
+            }
+            if (e.key === "ArrowLeft") {
+                direction.dx = -1;
+                direction.dy = 0
+            }
+            if (e.key === "ArrowRight") {
+                direction.dx = 1;
+                direction.dy = 0
+            }
         }
 
         document.addEventListener('keydown', handleKeyDown);
@@ -82,9 +121,10 @@ const Game = () => {
 
     return (
         <>
-            <h1 className="text-red-600">Snake</h1>
-            <div className="text-red-500">Test</div>
-            <canvas ref={canvasRef} width={400} height={400}/>
+            <h1 className="text-green-600">Snake</h1>
+            <h2>Score: {score}</h2>
+
+            <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={400} height={400}/>
         </>
     )
 }
