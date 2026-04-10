@@ -4,7 +4,7 @@ import {useEffect, useState, useRef} from "react";
 const Game = () => {
     const [size, setSize] = useState(20)
     const [direction, setDirection] = useState({dx: 1, dy: 0})
-    const [snake] = useState([
+    const [snake, setSnake] = useState([
         {x: 5, y: 5},
         {x: 6, y: 5},
         {x: 7, y: 5}
@@ -16,7 +16,8 @@ const Game = () => {
         x: Math.floor(Math.random() * size),
         y: Math.floor(Math.random() * size)
     })
-
+    console.log(food)
+    console.log(snake)
     // useEffect(() => {
     //     const fruitImg = new Image()
     //     fruitImg.src = '../assets/fruit.png'
@@ -26,7 +27,9 @@ const Game = () => {
     // }, [])
 
     useEffect(() => {
+        console.log("+++")
         if (snake[0].x === food.x && snake[0].y === food.y) {
+            console.log("**")
             setFood({
                 x: Math.floor(Math.random() * size),
                 y: Math.floor(Math.random() * size)
@@ -53,29 +56,31 @@ const Game = () => {
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
         ctx.fillStyle = 'red'
-        ctx.fillRect(food.x, food.y, size, size)
+        ctx.fillRect(food.x * size, food.y * size, size, size)
     }
 
     // setFood(drawFruit())
 
     function move() {  // сдвиг змейки на dx/dy
         // решение только тут
+        const newSnake = [...snake]
         if (direction.dx === 1 && direction.dy === 0) {
-            snake.pop()
-            snake.unshift({x: snake[0].x + 1, y: snake[0].y})
+            newSnake.pop()
+            newSnake.unshift({x: newSnake[0].x + 1, y: newSnake[0].y})
         }
         if (direction.dx === -1 && direction.dy === 0) {
-            snake.pop()
-            snake.unshift({x: snake[0].x - 1, y: snake[0].y})
+            newSnake.pop()
+            newSnake.unshift({x: newSnake[0].x - 1, y: newSnake[0].y})
         }
         if (direction.dx === 0 && direction.dy === 1) {
-            snake.pop()
-            snake.unshift({x: snake[0].x, y: snake[0].y + 1})
+            newSnake.pop()
+            newSnake.unshift({x: newSnake[0].x, y: newSnake[0].y + 1})
         }
         if (direction.dx === 0 && direction.dy === -1) {
-            snake.pop()
-            snake.unshift({x: snake[0].x, y: snake[0].y - 1})
+            newSnake.pop()
+            newSnake.unshift({x: newSnake[0].x, y: newSnake[0].y - 1})
         }
+        setSnake(newSnake)
     }
 
 
