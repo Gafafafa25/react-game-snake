@@ -59,15 +59,15 @@ const Game = () => {
     useEffect(() => {
         if (strictMode) {
             const canvas = canvasRef.current
-            const width = canvas.width
-            const height = canvas.height
+            const width = canvas.width / size
+            const height = canvas.height / size
             console.log(width, height, " here wh")
-            if (snake[0].x >= width || snake[0].y >= height) {
+            if (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0) {
                 alert("Defeat")
                 return
             }
         }
-    }, [strictMode, snake]);
+    }, [strictMode, snake])
 
     useEffect(() => {
         if (snake[0].x === food.x && snake[0].y === food.y) {
@@ -77,7 +77,7 @@ const Game = () => {
         }
     }, [snake])
 
-    useEffect(() => {
+    function drawGrid() {
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
         const width = canvas.width
@@ -95,7 +95,8 @@ const Game = () => {
         ctx.strokeStyle = '#ccc'
         ctx.lineWidth = 1
         ctx.stroke()
-    }, [snake])
+    }
+
 
     function drawCube(x, y) {  // отрисовать элемент змейки (квадратик)
         const canvas = canvasRef.current
@@ -107,7 +108,6 @@ const Game = () => {
     function drawSnake() {  // отрисовать всю змейку
         for (let part of snake) {
             drawCube(part.x, part.y)
-            drawFruit()
         }
     }
 
@@ -146,11 +146,13 @@ const Game = () => {
 
     const game = () => {
         console.log("playing game...")
+        move()  // сдвиг змейки
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
         ctx.clearRect(0, 0, canvas.width, canvas.height)
-        move()  // сдвиг змейки
+        drawGrid() // отрисовка сетки
         drawSnake() // отрисовка змейки
+        drawFruit() // отрисовка фрукта
     }
 
     useEffect(() => {
