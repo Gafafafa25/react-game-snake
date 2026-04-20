@@ -13,8 +13,8 @@ const Game = () => {
     // const fruitImgRef = useRef(null)
     const [score, setScore] = useState(0)
     const newCoords = () => {
-        let randomX = Math.floor(Math.random() * size)
-        let randomY = Math.floor(Math.random() * size)
+        let randomX = Math.floor(Math.random() * 13) + 2
+        let randomY = Math.floor(Math.random() * 13) + 2
 
         //todo:
         //add do while
@@ -117,6 +117,7 @@ const Game = () => {
         const ctx = canvas.getContext('2d')
         ctx.fillStyle = 'red'
         ctx.fillRect(food.x * size, food.y * size, size, size)
+        console.log(food.x, food.y)
     }
 
     // setFood(drawFruit())
@@ -127,6 +128,7 @@ const Game = () => {
         // console.log(newSnake, "new")
         if (direction.dx === 1 && direction.dy === 0) {
             newSnake.pop()
+            //todo if
             newSnake.unshift({x: newSnake[0].x + 1, y: newSnake[0].y})
         }
         if (direction.dx === -1 && direction.dy === 0) {
@@ -172,13 +174,16 @@ const Game = () => {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowUp") {
+                //todo if
                 setDirection({dx: 0, dy: -1})
             }
             if (e.key === "ArrowDown") {
                 setDirection({dx: 0, dy: 1})
             }
             if (e.key === "ArrowLeft") {
-                setDirection({dx: -1, dy: 0})
+                if (direction.dx !== 1 && direction.dy !== 0) {
+                    setDirection({dx: -1, dy: 0})
+                }
             }
             if (e.key === "ArrowRight") {
                 setDirection({dx: 1, dy: 0})
