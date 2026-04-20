@@ -17,25 +17,25 @@ const Game = () => {
         let randomY = Math.floor(Math.random() * size)
 
         //todo:
-        //???
-        // for ({x, y} of snake[0]) {
-        //     if (randomX === x && randomY === y) {
-        //         return newCoords()
-        //     }
-        // }
-        // return {x: randomX, y: randomY}
-
-        if (randomX !== snake[0].x && randomY !== snake[0].y &&
-            randomX !== snake[1].x && randomY !== snake[1].y &&
-            randomX !== snake[2].x && randomY !== snake[2].y) {
-            return {x: randomX, y: randomY}
+        //add do while
+        for (const {row, col} of snake) {
+            if (randomX === row && randomY === col) {
+                return newCoords()
+            }
         }
-        return newCoords()
+        return {x: randomX, y: randomY}
+
+        // if (randomX !== snake[0].x && randomY !== snake[0].y &&
+        //     randomX !== snake[1].x && randomY !== snake[1].y &&
+        //     randomX !== snake[2].x && randomY !== snake[2].y) {
+        //     return {x: randomX, y: randomY}
+        // }
+        // return newCoords()
     }
     const [food, setFood] = useState(() => newCoords())
     const [strictMode, setStrictMode] = useState(false)
-    console.log(food)
-    console.log(snake)
+    // console.log(food)
+    // console.log(snake)
     // useEffect(() => {
     //     const fruitImg = new Image()
     //     fruitImg.src = '../assets/fruit.png'
@@ -50,10 +50,11 @@ const Game = () => {
         const changedY = newSnake[newSnake.length - 1].y + 1
         newSnake.push({x: changedX, y: changedY})
         setSnake(newSnake)
+        console.log(score, "score here")
     }, [score])
 
-    const changeMode = (e) => {
-        setStrictMode(!e.target.checked)
+    const changeMode = () => {
+        setStrictMode(!strictMode)
     }
 
     useEffect(() => {
@@ -61,7 +62,7 @@ const Game = () => {
             const canvas = canvasRef.current
             const width = canvas.width / size
             const height = canvas.height / size
-            console.log(width, height, " here wh")
+            // console.log(width, height, " here wh")
             if (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0) {
                 alert("Defeat")
                 return
@@ -69,13 +70,13 @@ const Game = () => {
         }
     }, [strictMode, snake])
 
-    useEffect(() => {
-        if (snake[0].x === food.x && snake[0].y === food.y) {
-            console.log("**")
-            setFood(() => newCoords())
-            setScore(score + 1)
-        }
-    }, [snake])
+    // useEffect(() => {
+    //     if (snake[0].x === food.x && snake[0].y === food.y) {
+    //         // console.log("**")
+    //         setFood(() => newCoords())
+    //         setScore(score + 1)
+    //     }
+    // }, [snake])
 
     function drawGrid() {
         const canvas = canvasRef.current
@@ -123,7 +124,7 @@ const Game = () => {
     function move() {  // сдвиг змейки на dx/dy
         // решение только тут
         const newSnake = [...snake]
-        console.log(newSnake, "new")
+        // console.log(newSnake, "new")
         if (direction.dx === 1 && direction.dy === 0) {
             newSnake.pop()
             newSnake.unshift({x: newSnake[0].x + 1, y: newSnake[0].y})
@@ -145,8 +146,14 @@ const Game = () => {
 
 
     const game = () => {
-        console.log("playing game...")
+        // console.log("playing game...")
+        console.log(snake.length, " length")
         move()  // сдвиг змейки
+        if (snake[0].x === food.x && snake[0].y === food.y) {
+            // console.log("**")
+            setFood(() => newCoords())
+            setScore(score + 1)
+        }
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
         ctx.clearRect(0, 0, canvas.width, canvas.height)
