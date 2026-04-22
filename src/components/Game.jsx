@@ -18,6 +18,19 @@ const Game = () => {
 
         //todo:
         //add do while
+
+        // do {
+        //     let randomX = Math.floor(Math.random() * 13) + 2
+        //     let randomY = Math.floor(Math.random() * 13) + 2
+        //     for (const {row, col} of snake) {
+        //         if (randomX !== row && randomY !== col) {
+        //            return {x: randomX, y: randomY}
+        //         }
+        //     }
+        // }
+        // while (randomX !== row && randomY !== col)
+
+
         for (const {row, col} of snake) {
             if (randomX === row && randomY === col) {
                 return newCoords()
@@ -62,7 +75,7 @@ const Game = () => {
             const canvas = canvasRef.current
             const width = canvas.width / size
             const height = canvas.height / size
-            // console.log(width, height, " here wh")
+            console.log(width, height, " here wh")
             if (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0) {
                 alert("Defeat")
                 return
@@ -126,22 +139,49 @@ const Game = () => {
         // решение только тут
         const newSnake = [...snake]
         // console.log(newSnake, "new")
+        const canvas = canvasRef.current
+        const width = canvas.width / size
+        const height = canvas.height / size
+
         if (direction.dx === 1 && direction.dy === 0) {
             newSnake.pop()
-            //todo if
-            newSnake.unshift({x: newSnake[0].x + 1, y: newSnake[0].y})
+            if (strictMode === false &&
+                (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0)
+            ) {
+                newSnake.unshift({x: 0, y: newSnake[0].y})
+            } else {
+                newSnake.unshift({x: newSnake[0].x + 1, y: newSnake[0].y})
+            }
         }
         if (direction.dx === -1 && direction.dy === 0) {
             newSnake.pop()
-            newSnake.unshift({x: newSnake[0].x - 1, y: newSnake[0].y})
+            if (strictMode === false &&
+                (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0)
+            ) {
+                newSnake.unshift({x: width - 1, y: newSnake[0].y})
+            } else {
+                newSnake.unshift({x: newSnake[0].x - 1, y: newSnake[0].y})
+            }
         }
         if (direction.dx === 0 && direction.dy === 1) {
             newSnake.pop()
-            newSnake.unshift({x: newSnake[0].x, y: newSnake[0].y + 1})
+            if (strictMode === false &&
+                (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0)
+            ) {
+                newSnake.unshift({x: newSnake[0].x, y: 0})
+            } else {
+                newSnake.unshift({x: newSnake[0].x, y: newSnake[0].y + 1})
+            }
         }
         if (direction.dx === 0 && direction.dy === -1) {
             newSnake.pop()
-            newSnake.unshift({x: newSnake[0].x, y: newSnake[0].y - 1})
+            if (strictMode === false &&
+                (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0)
+            ) {
+                newSnake.unshift({x: newSnake[0].x, y: height - 1})
+            } else {
+                newSnake.unshift({x: newSnake[0].x, y: newSnake[0].y - 1})
+            }
         }
         setSnake(newSnake)
     }
@@ -174,11 +214,14 @@ const Game = () => {
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowUp") {
-                //todo if
-                setDirection({dx: 0, dy: -1})
+                if (direction.dx !== 0 && direction.dy !== 1) {
+                    setDirection({dx: 0, dy: -1})
+                }
             }
             if (e.key === "ArrowDown") {
-                setDirection({dx: 0, dy: 1})
+                if (direction.dx !== 0 && direction.dy !== -1) {
+                    setDirection({dx: 0, dy: 1})
+                }
             }
             if (e.key === "ArrowLeft") {
                 if (direction.dx !== 1 && direction.dy !== 0) {
@@ -186,7 +229,9 @@ const Game = () => {
                 }
             }
             if (e.key === "ArrowRight") {
-                setDirection({dx: 1, dy: 0})
+                if (direction.dx !== -1 && direction.dy !== 0) {
+                    setDirection({dx: 1, dy: 0})
+                }
             }
         }
 
