@@ -12,40 +12,26 @@ const Game = () => {
     const canvasRef = useRef(null)
     // const fruitImgRef = useRef(null)
     const [score, setScore] = useState(0)
-    const newCoords = () => {
-        let randomX = Math.floor(Math.random() * 13) + 2
-        let randomY = Math.floor(Math.random() * 13) + 2
+    const getFreePoint = () => {
+        let randomX, randomY
+        let isTouchedTail = 0
+        do {
+             randomX = Math.floor(Math.random() * 13) + 2
+             randomY = Math.floor(Math.random() * 13) + 2
 
-        //todo:
-        //add do while
-
-        // do {
-        //     let randomX = Math.floor(Math.random() * 13) + 2
-        //     let randomY = Math.floor(Math.random() * 13) + 2
-        //     for (const {row, col} of snake) {
-        //         if (randomX !== row && randomY !== col) {
-        //            return {x: randomX, y: randomY}
-        //         }
-        //     }
-        // }
-        // while (randomX !== row && randomY !== col)
-
-
-        for (const {row, col} of snake) {
-            if (randomX === row && randomY === col) {
-                return newCoords()
+            // для проверки попадания в хвост
+            // randomX = snake[Math.floor(snake.length / 2)].x
+            // randomY = snake[Math.floor(snake.length / 2)].y
+            for (const {x, y} of snake) {
+                if (randomX === x && randomY === y) {
+                    isTouchedTail = 1
+                }
             }
         }
+        while (isTouchedTail === 1)
         return {x: randomX, y: randomY}
-
-        // if (randomX !== snake[0].x && randomY !== snake[0].y &&
-        //     randomX !== snake[1].x && randomY !== snake[1].y &&
-        //     randomX !== snake[2].x && randomY !== snake[2].y) {
-        //     return {x: randomX, y: randomY}
-        // }
-        // return newCoords()
     }
-    const [food, setFood] = useState(() => newCoords())
+    const [food, setFood] = useState(() => getFreePoint())
     const [strictMode, setStrictMode] = useState(false)
     // console.log(food)
     // console.log(snake)
@@ -63,7 +49,7 @@ const Game = () => {
         const changedY = newSnake[newSnake.length - 1].y + 1
         newSnake.push({x: changedX, y: changedY})
         setSnake(newSnake)
-        console.log(score, "score here")
+        // console.log(score, "score here")
     }, [score])
 
     const changeMode = () => {
@@ -75,7 +61,7 @@ const Game = () => {
             const canvas = canvasRef.current
             const width = canvas.width / size
             const height = canvas.height / size
-            console.log(width, height, " here wh")
+            // console.log(width, height, " here wh")
             if (snake[0].x >= width || snake[0].y >= height || snake[0].x < 0 || snake[0].y < 0) {
                 alert("Defeat")
                 return
@@ -130,7 +116,7 @@ const Game = () => {
         const ctx = canvas.getContext('2d')
         ctx.fillStyle = 'red'
         ctx.fillRect(food.x * size, food.y * size, size, size)
-        console.log(food.x, food.y)
+        // console.log(food.x, food.y)
     }
 
     // setFood(drawFruit())
@@ -189,11 +175,11 @@ const Game = () => {
 
     const game = () => {
         // console.log("playing game...")
-        console.log(snake.length, " length")
+        // console.log(snake.length, " length")
         move()  // сдвиг змейки
         if (snake[0].x === food.x && snake[0].y === food.y) {
             // console.log("**")
-            setFood(() => newCoords())
+            setFood(() => getFreePoint())
             setScore(score + 1)
         }
         const canvas = canvasRef.current
