@@ -1,6 +1,5 @@
 import {useEffect, useState, useRef} from "react";
 
-
 const Game = () => {
     const [size, setSize] = useState(20)
     const [direction, setDirection] = useState({dx: 1, dy: 0})
@@ -31,7 +30,31 @@ const Game = () => {
         while (isTouchedTail === 1)
         return {x: randomX, y: randomY}
     }
+    const generateWall = () =>{
+        let randomX, randomY
+        let isTouchedTail = 0
+        let isTouchedFruit = 0
+        do {
+            randomX = Math.floor(Math.random() * 13) + 2
+            randomY = Math.floor(Math.random() * 13) + 2
+
+            // для проверки попадания в хвост
+            // randomX = snake[Math.floor(snake.length / 2)].x
+            // randomY = snake[Math.floor(snake.length / 2)].y
+            for (const {x, y} of snake) {
+                if (randomX === x && randomY === y) {
+                    isTouchedTail = 1
+                }
+            }
+            if (randomX === food.x && randomY === food.y) {
+                isTouchedFruit = 1
+            }
+        }
+        while (isTouchedTail === 1 && isTouchedFruit === 1)
+        return {x: randomX, y: randomY}
+    }
     const [food, setFood] = useState(() => getFreePoint())
+    const [wall, setWall] = useState(() => generateWall())
     const [strictMode, setStrictMode] = useState(false)
     // console.log(food)
     // console.log(snake)
@@ -68,6 +91,15 @@ const Game = () => {
             }
         }
     }, [strictMode, snake])
+
+    useEffect(() => {
+        for (let i = 0; i < 4; i++) {
+           if (snake[0].x === wall.x + i && snake[0].y === wall.y + i) {
+               alert("Defeat")
+               return
+           }
+        }
+    }, [snake])
 
     // useEffect(() => {
     //     if (snake[0].x === food.x && snake[0].y === food.y) {
@@ -119,7 +151,14 @@ const Game = () => {
         // console.log(food.x, food.y)
     }
 
-    // setFood(drawFruit())
+    function drawWall() {
+        const canvas = canvasRef.current
+        const ctx = canvas.getContext('2d')
+        ctx.fillStyle = 'blue'
+        for (let i = 0; i < 4; i++) {
+            ctx.fillRect((wall.x + i) * size, (wall.y + i )* size, size,  size)
+        }
+    }
 
     function move() {  // сдвиг змейки на dx/dy
         // решение только тут
@@ -180,6 +219,7 @@ const Game = () => {
         if (snake[0].x === food.x && snake[0].y === food.y) {
             // console.log("**")
             setFood(() => getFreePoint())
+            setWall(() => generateWall())
             setScore(score + 1)
         }
         const canvas = canvasRef.current
@@ -188,6 +228,7 @@ const Game = () => {
         drawGrid() // отрисовка сетки
         drawSnake() // отрисовка змейки
         drawFruit() // отрисовка фрукта
+        drawWall() // отрисовка стены
     }
 
     useEffect(() => {
