@@ -8,32 +8,17 @@ const Game = () => {
         {x: 6, y: 5},
         {x: 7, y: 5}
     ])
+    const [score, setScore] = useState(0)
+    // const [food, setFood] = useState(() => getFreePoint())
+    const [food, setFood] = useState({x: 10, y: 10}) //todo: random point
+    const [wall, setWall] = useState({x: -1, y: -1}) //todo:
+    const [strictMode, setStrictMode] = useState(false)
     const canvasRef = useRef(null)
     // const fruitImgRef = useRef(null)
-    const [score, setScore] = useState(0)
+
     const getFreePoint = () => {
         let randomX, randomY
         let isTouchedTail = 0
-        do {
-             randomX = Math.floor(Math.random() * 13) + 2
-             randomY = Math.floor(Math.random() * 13) + 2
-
-            // для проверки попадания в хвост
-            // randomX = snake[Math.floor(snake.length / 2)].x
-            // randomY = snake[Math.floor(snake.length / 2)].y
-            for (const {x, y} of snake) {
-                if (randomX === x && randomY === y) {
-                    isTouchedTail = 1
-                }
-            }
-        }
-        while (isTouchedTail === 1)
-        return {x: randomX, y: randomY}
-    }
-    const generateWall = () =>{
-        let randomX, randomY
-        let isTouchedTail = 0
-        let isTouchedFruit = 0
         do {
             randomX = Math.floor(Math.random() * 13) + 2
             randomY = Math.floor(Math.random() * 13) + 2
@@ -46,18 +31,21 @@ const Game = () => {
                     isTouchedTail = 1
                 }
             }
-            if (randomX === food.x && randomY === food.y) {
-                isTouchedFruit = 1
-            }
-        }
-        while (isTouchedTail === 1 && isTouchedFruit === 1)
+        } while (isTouchedTail === 1 || randomX === food.x && randomY === food.y)
         return {x: randomX, y: randomY}
     }
-    const [food, setFood] = useState(() => getFreePoint())
-    const [wall, setWall] = useState(() => generateWall())
-    const [strictMode, setStrictMode] = useState(false)
-    // console.log(food)
-    // console.log(snake)
+
+    useEffect(() => {
+        setFood(() => getFreePoint())
+        const newWalls = []
+        const wall = () => getFreePoint()
+        for (let i = 0; i < 4; i++) {
+            newWalls.push({x: wall.x + i, y: wall.y + i})
+        }
+        setWall(newWalls)
+    }, [])
+
+
     // useEffect(() => {
     //     const fruitImg = new Image()
     //     fruitImg.src = '../assets/fruit.png'
@@ -94,10 +82,10 @@ const Game = () => {
 
     useEffect(() => {
         for (let i = 0; i < 4; i++) {
-           if (snake[0].x === wall.x + i && snake[0].y === wall.y + i) {
-               alert("Defeat")
-               return
-           }
+            if (snake[0].x === wall.x + i && snake[0].y === wall.y + i) {
+                alert("Defeat")
+                return
+            }
         }
     }, [snake])
 
@@ -151,13 +139,14 @@ const Game = () => {
         // console.log(food.x, food.y)
     }
 
-    function drawWall() {
+
+    function drawWall(x, y) {
         const canvas = canvasRef.current
         const ctx = canvas.getContext('2d')
         ctx.fillStyle = 'blue'
-        for (let i = 0; i < 4; i++) {
-            ctx.fillRect((wall.x + i) * size, (wall.y + i )* size, size,  size)
-        }
+        // for (let i = 0; i < 4; i++) {
+            ctx.fillRect((x) * size, (y) * size, size, size)
+        // }
     }
 
     function move() {  // сдвиг змейки на dx/dy
@@ -219,7 +208,6 @@ const Game = () => {
         if (snake[0].x === food.x && snake[0].y === food.y) {
             // console.log("**")
             setFood(() => getFreePoint())
-            setWall(() => generateWall())
             setScore(score + 1)
         }
         const canvas = canvasRef.current
@@ -265,6 +253,8 @@ const Game = () => {
         document.addEventListener('keydown', handleKeyDown);
         return () => document.removeEventListener('keydown', handleKeyDown);
     }, [direction])
+
+
 
     return (
         <>
