@@ -57,23 +57,17 @@ const drawGrid = (ctx) => {
     ctx.lineWidth = 1
     ctx.stroke()
 }
-const renderGame = (canvas, state, color) => {
+const renderGame = (canvas, state) => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawGrid(ctx)
-    //add color
     for (let part of state.snake) {
-        drawCell(ctx, part, color) //todo: head has another color changed
+        drawCell(ctx, part, 'black')
     }
-   //add fruit
-        ctx.fillRect(state.food.x  * cellSize, state.food.y * cellSize, cellSize, cellSize)
-    //
-    //add walls
+    drawCell(ctx, state.food, 'red')
     for (let i = 0; i < state.walls.length; i++) {
-        ctx.fillRect(state.walls[i].x  * cellSize, state.walls[i].y + i * cellSize, cellSize, cellSize)
+        drawCell(ctx, state.walls[i], 'blue')
     }
-    //
-    //todo: draw fruit and walls +
 }
 
 const keyToDirection = {
@@ -99,7 +93,7 @@ const Game = () => {
 
     useEffect(() => {
         //if canvasRef.current
-        renderGame(canvasRef.current, gameState, 'black')
+        renderGame(canvasRef.current, gameState)
     }, [gameState])
 
     useEffect(() => {
@@ -111,6 +105,11 @@ const Game = () => {
             e.preventDefault()
             setGameState((gameState) => {
                 //todo: direction only in one side +
+                if (directionRef.current.dx + newDirection.dx === 0 ||
+                    directionRef.current.dy + newDirection.dy === 0) {
+                        return gameState
+                }
+                console.log("+")
                 directionRef.current = newDirection
                 return {...gameState, direction: newDirection}
             })
