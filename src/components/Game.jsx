@@ -28,7 +28,7 @@ const createInitialState = () => {
 const getNextHead = (head, direction) => {
     return {x: head.x + direction.dx, y: head.y + direction.dy}
 }
-const getFreePoint = (currentState) => {
+const getEmptyCell = (currentState) => {
     let randomX, randomY
     let isTouchedTail = 0
     do {
@@ -65,14 +65,14 @@ const getNextGameState = (currentState, direction) => {
             return {...currentState, status: "gameOver"}
         }
     }
-    const snake = [tmpHead, ...currentState.snake.slice(0, -1)] //todo: function new fruit! all new
+    const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
     if (tmpHead.x === currentState.food.x && tmpHead.y === currentState.food.y) {
-         const food = getFreePoint(currentState)
+         const food = getEmptyCell(currentState)
          // console.log(food, " food")
          const score = currentState.score + 1
             return {...currentState, snake: snake, food: food, score: score}
     }
-    return {...currentState, snake: snake} // todo: add food, score and ...
+    return {...currentState, snake: snake}
 }
 const drawCell = (ctx, cell, color) => {
     ctx.fillStyle = color
