@@ -1,8 +1,8 @@
 import {useEffect, useState, useRef} from "react";
 
-const cellSize = 20
+const cellSize = 30
 const columns = 20
-const rows = 15
+const rows = 10
 const gameSpeed = 200
 const initSnake = [{x: 7, y: 6}, {x: 6, y: 6}, {x: 5, y: 6}]
 const initDirection = {dx: 1, dy: 0}
@@ -10,11 +10,11 @@ const compareCells = (cell1, cell2) => {
     return cell1.x === cell2.x && cell1.y === cell2.y
 }
 const isOutside = (head) => {
-    return head.x < 0 || head.y < 0 || head.x >= rows || head.y >= columns
+    return head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows
 }
 const createInitialState = () => {
-    const walls = [{x: 0, y: 0}, {x: 1, y: 0}, {x: 2, y: 0}]
-    const food = {x: 1, y: 4} //todo: getRandom()
+    const walls = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
+    const food = {x: 4, y: 4} //todo: getRandom()
     return {
         snake: initSnake,
         walls: walls,
@@ -31,13 +31,24 @@ const getNextHead = (head, direction) => {
 const getNextGameState = (currentState, direction) => {
     //todo: status if pause return currentState *
     const tmpHead = getNextHead(currentState.snake[0], direction)
+    const tmpTail = currentState.snake[currentState.snake.length - 1]
     if (isOutside(tmpHead)) {
+        // alert("gameOver")
         return {...currentState, status: "gameOver"}
     }
-    //todo: if hit tail, walls (last)
+    if (tmpHead.x === tmpTail.x && tmpHead.y === tmpTail.y) {
+        // alert("gameOver")
+        return {...currentState, status: "gameOver"}
+    }
+    for (let i = 0; i < currentState.walls.length; i++) {
+        if (tmpHead.x === currentState.walls[i].x && tmpHead.y === currentState.walls[i].y) {
+            // alert("gameOver")
+            return {...currentState, status: "gameOver"}
+        }
+    }
     //todo: check fruit(with tail) (last)
-    const snake = [tmpHead, ...currentState.snake.slice(0, -1)] //todo: new fruit! all new
-    return {...currentState, snake: snake}
+    const snake = [tmpHead, ...currentState.snake.slice(0, -1)] //todo: function new fruit! all new
+    return {...currentState, snake: snake} // todo: add food, score and ...
 }
 const drawCell = (ctx, cell, color) => {
     ctx.fillStyle = color
@@ -104,7 +115,6 @@ const Game = () => {
             }
             e.preventDefault()
             setGameState((gameState) => {
-                //todo: direction only in one side +
                 if (directionRef.current.dx + newDirection.dx === 0 ||
                     directionRef.current.dy + newDirection.dy === 0) {
                         return gameState
