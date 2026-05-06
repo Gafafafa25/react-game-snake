@@ -28,6 +28,25 @@ const createInitialState = () => {
 const getNextHead = (head, direction) => {
     return {x: head.x + direction.dx, y: head.y + direction.dy}
 }
+const getFreePoint = (currentState) => {
+    let randomX, randomY
+    let isTouchedTail = 0
+    do {
+        randomX = Math.floor(Math.random() * 13) + 2
+        randomY = Math.floor(Math.random() * 13) + 2
+
+        // для проверки попадания в хвост
+        // randomX = snake[Math.floor(snake.length / 2)].x
+        // randomY = snake[Math.floor(snake.length / 2)].y
+        for (const {x, y} of currentState.snake) {
+            if (randomX === x && randomY === y) {
+                isTouchedTail = 1
+            }
+        }
+    } while (isTouchedTail === 1 || randomX === currentState.food.x && randomY === currentState.food.y)
+    return {x: randomX, y: randomY}
+}
+
 const getNextGameState = (currentState, direction) => {
     //todo: status if pause return currentState *
     const tmpHead = getNextHead(currentState.snake[0], direction)
@@ -46,8 +65,13 @@ const getNextGameState = (currentState, direction) => {
             return {...currentState, status: "gameOver"}
         }
     }
-    //todo: check fruit(with tail) (last)
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)] //todo: function new fruit! all new
+    if (tmpHead.x === currentState.food.x && tmpHead.y === currentState.food.y) {
+         const food = getFreePoint(currentState)
+         // console.log(food, " food")
+         const score = currentState.score + 1
+            return {...currentState, snake: snake, food: food, score: score}
+    }
     return {...currentState, snake: snake} // todo: add food, score and ...
 }
 const drawCell = (ctx, cell, color) => {
@@ -117,7 +141,7 @@ const Game = () => {
             setGameState((gameState) => {
                 if (directionRef.current.dx + newDirection.dx === 0 ||
                     directionRef.current.dy + newDirection.dy === 0) {
-                        return gameState
+                    return gameState
                 }
                 console.log("+")
                 directionRef.current = newDirection
@@ -131,12 +155,13 @@ const Game = () => {
     return (
         <section>
             <h1 className="text-green-600">Snake</h1>
-            {/*<h2>Score: {score}</h2>*/}
+            <h2>Score: {gameState.score}</h2>
             {/*<div>*/}
             {/*    /!*<input type="checkbox" id="option1" checked={strictMode} onChange={changeMode}/>*!/*/}
             {/*    <label htmlFor="option1"> Strict boundaries</label>*/}
             {/*</div>*/}
-            <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={columns * cellSize} height={rows * cellSize}/>
+            <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={columns * cellSize}
+                    height={rows * cellSize}/>
         </section>
     )
 }
