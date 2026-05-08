@@ -13,8 +13,8 @@ const isOutside = (head) => {
     return head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows
 }
 const createInitialState = () => {
-    // const walls = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
-    const walls = []
+    const walls = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
+    // const walls = []
 
     const food = {x: 4, y: 4}
     return {
@@ -57,7 +57,7 @@ const getNextGameState = (currentState, direction) => {
     //todo: status if pause return currentState *
     const tmpHead = getNextHead(currentState.snake[0], direction)
     const tmpTail = currentState.snake[currentState.snake.length - 1]
-    if (isOutside(tmpHead)) {
+    if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
     }
@@ -67,7 +67,7 @@ const getNextGameState = (currentState, direction) => {
     }
     for (let i = 0; i < currentState.walls.length; i++) {
         if (compareCells(tmpHead, currentState.walls[i])) {
-            alert("gameOver")
+            // alert("gameOver")
             return {...currentState, status: "gameOver"}
         }
     }
@@ -110,6 +110,7 @@ const renderGame = (canvas, state) => {
         drawCell(ctx, state.walls[i], 'blue')
     }
 }
+
 
 const keyToDirection = {
     ArrowUp: {dx: 0, dy: -1},
@@ -163,10 +164,10 @@ const Game = () => {
         <section>
             <h1 className="text-green-600">Snake</h1>
             <h2>Score: {gameState.score}</h2>
-            {/*<div>*/}
-            {/*    /!*<input type="checkbox" id="option1" checked={strictMode} onChange={changeMode}/>*!/*/}
-            {/*    <label htmlFor="option1"> Strict boundaries</label>*/}
-            {/*</div>*/}
+            <div>
+                <input type="checkbox" id="option1" checked={gameState.strictMode} onChange={() => !gameState.strictMode}/>
+                <label htmlFor="option1"> Strict boundaries</label>
+            </div>
             <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={columns * cellSize}
                     height={rows * cellSize}/>
         </section>
