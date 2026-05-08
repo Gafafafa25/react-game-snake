@@ -13,8 +13,10 @@ const isOutside = (head) => {
     return head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows
 }
 const createInitialState = () => {
-    const walls = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
-    const food = {x: 4, y: 4} //todo: getRandom()
+    // const walls = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
+    const walls = []
+
+    const food = {x: 4, y: 4}
     return {
         snake: initSnake,
         walls: walls,
@@ -32,8 +34,10 @@ const getEmptyCell = (currentState) => {
     let randomX, randomY
     let isTouchedTail = 0
     do {
-        randomX = Math.floor(Math.random() * 13) + 2
-        randomY = Math.floor(Math.random() * 13) + 2
+        console.log("!")
+        isTouchedTail = 0
+        randomX = Math.floor(Math.random() * (columns - 3)) + 2
+        randomY = Math.floor(Math.random() * (rows - 3)) + 2
 
         // для проверки попадания в хвост
         // randomX = snake[Math.floor(snake.length / 2)].x
@@ -41,6 +45,8 @@ const getEmptyCell = (currentState) => {
         for (const {x, y} of currentState.snake) {
             if (randomX === x && randomY === y) {
                 isTouchedTail = 1
+                // alert(randomX, randomY)
+                alert("here")
             }
         }
     } while (isTouchedTail === 1 || randomX === currentState.food.x && randomY === currentState.food.y)
@@ -55,22 +61,22 @@ const getNextGameState = (currentState, direction) => {
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
     }
-    if (tmpHead.x === tmpTail.x && tmpHead.y === tmpTail.y) {
+    if (compareCells(tmpHead, tmpTail)) { //todo: compareCells()
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
     }
     for (let i = 0; i < currentState.walls.length; i++) {
-        if (tmpHead.x === currentState.walls[i].x && tmpHead.y === currentState.walls[i].y) {
-            // alert("gameOver")
+        if (compareCells(tmpHead, currentState.walls[i])) {
+            alert("gameOver")
             return {...currentState, status: "gameOver"}
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
     if (tmpHead.x === currentState.food.x && tmpHead.y === currentState.food.y) {
-         const food = getEmptyCell(currentState)
-         // console.log(food, " food")
-         const score = currentState.score + 1
-            return {...currentState, snake: snake, food: food, score: score}
+        const food = getEmptyCell(currentState)
+        console.log(food, " food")
+        const score = currentState.score + 1
+        return {...currentState, snake: snake, food: food, score: score}
     }
     return {...currentState, snake: snake}
 }
@@ -116,6 +122,8 @@ const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
     const canvasRef = useRef(null)
     const directionRef = useRef(initDirection)
+    // const directionRef = useRef(initDirection) //todo: directionRef2
+
 
     useEffect(() => { //main
         const intervalId = setInterval(() => {
@@ -132,7 +140,7 @@ const Game = () => {
     }, [gameState])
 
     useEffect(() => {
-        const handleKeyDown = (e) => {
+        const handleKeyDown = (e) => { //todo: bug - sometimes not only in one side
             const newDirection = keyToDirection[e.key]
             if (!newDirection) {
                 return
@@ -143,7 +151,6 @@ const Game = () => {
                     directionRef.current.dy + newDirection.dy === 0) {
                     return gameState
                 }
-                console.log("+")
                 directionRef.current = newDirection
                 return {...gameState, direction: newDirection}
             })
