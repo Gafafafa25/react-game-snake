@@ -33,9 +33,11 @@ const getNextHead = (head, direction) => {
 const getEmptyCell = (currentState) => {
     let randomX, randomY
     let isTouchedTail = 0
+    let isTouchedWall = 0
     do {
         console.log("!")
         isTouchedTail = 0
+        isTouchedWall = 0
         randomX = Math.floor(Math.random() * (columns - 3)) + 2
         randomY = Math.floor(Math.random() * (rows - 3)) + 2
 
@@ -45,23 +47,35 @@ const getEmptyCell = (currentState) => {
         for (const {x, y} of currentState.snake) {
             if (randomX === x && randomY === y) {
                 isTouchedTail = 1
+                break
                 // alert(randomX, randomY)
-                alert("here")
+                // alert("here")
             }
         }
-    } while (isTouchedTail === 1 || randomX === currentState.food.x && randomY === currentState.food.y)
+        for (const {x, y} of currentState.walls) {
+            if (randomX === x && randomY === y) {
+                isTouchedWall = 1
+                break
+                // alert(randomX, randomY)
+                // alert("here")
+            }
+        }
+    } while (isTouchedTail === 1 || randomX === currentState.food.x && randomY === currentState.food.y || isTouchedWall === 1)
     return {x: randomX, y: randomY}
 }
 
 const getNextGameState = (currentState, direction) => {
-    //todo: status if pause return currentState *
     const tmpHead = getNextHead(currentState.snake[0], direction)
     const tmpTail = currentState.snake[currentState.snake.length - 1]
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
     }
-    if (compareCells(tmpHead, tmpTail)) { //todo: compareCells()
+    if (isOutside(tmpHead) && currentState.strictMode === false) {
+        // alert("gameOver")
+        return {...currentState, status: "gameOver"}
+    }
+    if (compareCells(tmpHead, tmpTail)) {
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
     }
@@ -72,10 +86,11 @@ const getNextGameState = (currentState, direction) => {
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
-    if (tmpHead.x === currentState.food.x && tmpHead.y === currentState.food.y) {
+    if (compareCells(tmpHead, currentState.food)) {
         const food = getEmptyCell(currentState)
         console.log(food, " food")
         const score = currentState.score + 1
+        const snake = [tmpHead, ...currentState.snake]
         return {...currentState, snake: snake, food: food, score: score}
     }
     return {...currentState, snake: snake}
@@ -119,6 +134,8 @@ const keyToDirection = {
     ArrowRight: {dx: 1, dy: 0}
 }
 
+
+
 const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
     const canvasRef = useRef(null)
@@ -128,7 +145,12 @@ const Game = () => {
 
     useEffect(() => { //main
         const intervalId = setInterval(() => {
-            setGameState((currentGameState) => getNextGameState(currentGameState, directionRef.current))
+            setGameState((currentGameState) => {
+                if (currentGameState.status === "pause") {
+                    return currentGameState
+                }
+                return getNextGameState(currentGameState, directionRef.current)
+            })
         }, gameSpeed)
         return () => {
             clearInterval(intervalId)
@@ -142,6 +164,13 @@ const Game = () => {
 
     useEffect(() => {
         const handleKeyDown = (e) => { //todo: bug - sometimes not only in one side
+            console.log(e.code, " key")
+            if (e.code === "Space") {
+                setGameState((gameState) => {
+                   return {...gameState, status: gameState.status === "active" ? "pause" : "active"}
+                })
+                return
+            }
             const newDirection = keyToDirection[e.key]
             if (!newDirection) {
                 return
@@ -165,7 +194,8 @@ const Game = () => {
             <h1 className="text-green-600">Snake</h1>
             <h2>Score: {gameState.score}</h2>
             <div>
-                <input type="checkbox" id="option1" checked={gameState.strictMode} onChange={() => !gameState.strictMode}/>
+                <input type="checkbox" id="option1" checked={gameState.strictMode}
+                       onChange={() => setGameState(gameState => ({...gameState, strictMode: !gameState.strictMode}))} />
                 <label htmlFor="option1"> Strict boundaries</label>
             </div>
             <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={columns * cellSize}
