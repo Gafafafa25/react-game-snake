@@ -17,27 +17,48 @@ const createInitialState = () => {
     // const walls = []
 
     const food = {x: 4, y: 4}
+    const foodX2 = {x: 8, y: 8}
     return {
         snake: initSnake,
         walls: walls,
         food: food,
+        foodX2: foodX2,
         direction: initDirection,
         score: 0,
         strictMode: false,
         status: "active"
     }
 }
-const getNextHead = (head, direction) => {
+const getNextHead = (head, direction, strictMode) => {
+    const nextHead = {x: head.x + direction.dx, y: head.y + direction.dy}
+    if (strictMode === false && isOutside(nextHead)) {
+        if (direction.dx === 1 && direction.dy === 0) {
+            return {x: 0, y: nextHead.y}
+        }
+        if (direction.dx === -1 && direction.dy === 0) {
+            return {x: columns - 1, y: nextHead.y}
+        }
+        if (direction.dx === 0 && direction.dy === 1) {
+            return {x: nextHead.x, y: 0}
+        }
+        if (direction.dx === 0 && direction.dy === -1) {
+            return {x: nextHead.x, y: rows - 1}
+        }
+    }
     return {x: head.x + direction.dx, y: head.y + direction.dy}
 }
 const getEmptyCell = (currentState) => {
     let randomX, randomY
     let isTouchedTail = 0
     let isTouchedWall = 0
+    let isTouchedFood = 0
     do {
         console.log("!")
         isTouchedTail = 0
         isTouchedWall = 0
+        isTouchedFood = 0
+        //todo: isTouchedFoodX2
+
         randomX = Math.floor(Math.random() * (columns - 3)) + 2
         randomY = Math.floor(Math.random() * (rows - 3)) + 2
 
@@ -60,21 +81,25 @@ const getEmptyCell = (currentState) => {
                 // alert("here")
             }
         }
-    } while (isTouchedTail === 1 || randomX === currentState.food.x && randomY === currentState.food.y || isTouchedWall === 1)
+        if (randomX === currentState.food.x && randomY === currentState.food.y ) {
+            isTouchedFood = 1
+            break
+        }
+    } while (isTouchedTail === 1 || isTouchedWall === 1 || isTouchedFood === 1)
     return {x: randomX, y: randomY}
 }
 
 const getNextGameState = (currentState, direction) => {
-    const tmpHead = getNextHead(currentState.snake[0], direction)
+    const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
     const tmpTail = currentState.snake[currentState.snake.length - 1]
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
     }
-    if (isOutside(tmpHead) && currentState.strictMode === false) {
-        // alert("gameOver")
-        return {...currentState, status: "gameOver"}
-    }
+    // if (isOutside(tmpHead) && currentState.strictMode === false) {
+    //     // alert("gameOver")
+    //     return {...currentState}
+    // }// fix update tmpHead
     if (compareCells(tmpHead, tmpTail)) {
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
@@ -86,12 +111,20 @@ const getNextGameState = (currentState, direction) => {
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
+    //todo: snake + 1 ???
     if (compareCells(tmpHead, currentState.food)) {
         const food = getEmptyCell(currentState)
         console.log(food, " food")
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
         return {...currentState, snake: snake, food: food, score: score}
+    }
+    if (compareCells(tmpHead, currentState.foodX2)) {
+        const foodX2 = getEmptyCell(currentState)
+        console.log(foodX2, " foodX2")
+        const score = currentState.score * 2
+        const snake = [tmpHead, ...currentState.snake]
+        return {...currentState, snake: snake, foodX2: foodX2, score: score}
     }
     return {...currentState, snake: snake}
 }
@@ -124,6 +157,7 @@ const renderGame = (canvas, state) => {
     for (let i = 0; i < state.walls.length; i++) {
         drawCell(ctx, state.walls[i], 'blue')
     }
+    drawCell(ctx, state.foodX2, 'green')
 }
 
 
@@ -133,7 +167,6 @@ const keyToDirection = {
     ArrowLeft: {dx: -1, dy: 0},
     ArrowRight: {dx: 1, dy: 0}
 }
-
 
 
 const Game = () => {
@@ -167,7 +200,7 @@ const Game = () => {
             console.log(e.code, " key")
             if (e.code === "Space") {
                 setGameState((gameState) => {
-                   return {...gameState, status: gameState.status === "active" ? "pause" : "active"}
+                    return {...gameState, status: gameState.status === "active" ? "pause" : "active"}
                 })
                 return
             }
@@ -193,9 +226,10 @@ const Game = () => {
         <section>
             <h1 className="text-green-600">Snake</h1>
             <h2>Score: {gameState.score}</h2>
+            <h2>Status: {gameState.status}</h2>
             <div>
                 <input type="checkbox" id="option1" checked={gameState.strictMode}
-                       onChange={() => setGameState(gameState => ({...gameState, strictMode: !gameState.strictMode}))} />
+                       onChange={() => setGameState(gameState => ({...gameState, strictMode: !gameState.strictMode}))}/>
                 <label htmlFor="option1"> Strict boundaries</label>
             </div>
             <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={columns * cellSize}
