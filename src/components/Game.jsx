@@ -18,11 +18,15 @@ const createInitialState = () => {
 
     const food = {x: 4, y: 4}
     const foodX2 = {x: 8, y: 8}
+    // const leftEye = {x: 7, y: 6}
+    // const rightEye = {x: 7, y: 6}
     return {
         snake: initSnake,
         walls: walls,
         food: food,
         foodX2: foodX2,
+        // leftEye: leftEye,
+        // rightEye: rightEye,
         direction: initDirection,
         score: 0,
         strictMode: false,
@@ -81,7 +85,7 @@ const getEmptyCell = (currentState) => {
                 // alert("here")
             }
         }
-        if (randomX === currentState.food.x && randomY === currentState.food.y ) {
+        if (randomX === currentState.food.x && randomY === currentState.food.y) {
             isTouchedFood = 1
             break
         }
@@ -117,6 +121,11 @@ const getNextGameState = (currentState, direction) => {
         console.log(food, " food")
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
+        // const snakeNew = []
+        //todo: check direction
+        // for (let i= snake.length - 1; i < currentState.snake.length; i++) {
+        //     snake.push({x: currentState.snake[i].x + 1, y: currentState.snake[i].y + 1})
+        // }
         return {...currentState, snake: snake, food: food, score: score}
     }
     if (compareCells(tmpHead, currentState.foodX2)) {
@@ -146,12 +155,34 @@ const drawGrid = (ctx) => {
     ctx.lineWidth = 1
     ctx.stroke()
 }
+const drawEyes = (ctx, head) => {
+    // const eyeSize = size / 4
+    // const pupilSize = eyeSize / 2
+    // const leftEye = {x: head.x + size - eyeSize * 1.5, y: head.y}
+
+    ctx.beginPath();
+    ctx.arc(head.x + 5, head.y + 5, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Правый глаз (верхний правый угол головы)
+    ctx.beginPath();
+    ctx.arc(head.x + cellSize - 5, head.y + 5, 3, 0, Math.PI * 2);
+    ctx.fill();
+}
+
 const renderGame = (canvas, state) => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawGrid(ctx)
-    for (let part of state.snake) {
-        drawCell(ctx, part, 'black')
+    // for (let part of state.snake) {
+    //     drawCell(ctx, part, 'black')
+    // }
+    for (let i = 0; i < state.snake.length; i++) {
+        if (i === 0) {
+            drawEyes(ctx, state.snake[i])
+        } else {
+            drawCell(ctx, state.snake[i], 'black')
+        }
     }
     drawCell(ctx, state.food, 'red')
     for (let i = 0; i < state.walls.length; i++) {
