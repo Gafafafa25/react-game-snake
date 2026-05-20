@@ -18,7 +18,7 @@ const createInitialState = () => {
 
     const food = {x: 4, y: 4}
     const foodX2 = {x: 8, y: 8}
-    const foodX2Count =  0
+    const foodX2Count = 0
     // const leftEye = {x: 7, y: 6}
     // const rightEye = {x: 7, y: 6}
     return {
@@ -119,13 +119,13 @@ const getNextGameState = (currentState, direction) => {
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
     //todo: snake + 1 ???
-    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 ) {
+    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0) {
         const food = getEmptyCell(currentState)
         console.log(food, " food")
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
         // const snakeNew = []
-        return {...currentState, snake: snake, food: food, score: score, foodX2Count:  currentState.foodX2Count - 1}
+        return {...currentState, snake: snake, food: food, score: score, foodX2Count: currentState.foodX2Count - 1}
     }
     if (compareCells(tmpHead, currentState.foodX2)) {
         const foodX2 = getEmptyCell(currentState)
@@ -161,24 +161,28 @@ const drawEyes = (ctx, head, direction) => {
     ctx.fillStyle = 'black'
     ctx.fillRect(head.x * cellSize, head.y * cellSize, cellSize, cellSize)
 
-    // const newDirection = keyToDirection[e.key]
-    // console.log(direction, " direction")
-    const key = Object.keys(keyToDirection).find(k => keyToDirection[k] === direction)
-    console.log(key, " key")
+    let directionKey = ""
+    if (compareCells(direction, {dx: 1, dy: 0})) {
+        directionKey = "Right"
+    } else if (compareCells(direction, {dx: -1, dy: 0})) {
+        directionKey = "Left"
+    } else if (compareCells(direction, {dx: 0, dy: -1})) {
+        directionKey = "Up"
+    } //todo: Down
+    const params = d[directionKey]
+
+
 
     // Левый глаз (нижний левый угол головы)
     ctx.fillStyle = 'green'
     ctx.beginPath();
-    // console.log(key, " dir x")
-    // ctx.arc(head.x * cellSize + 10, head.y * cellSize + 5, 3, 0, Math.PI * 2);
-    ctx.arc(head.x * cellSize + direction.x + 4, head.y * cellSize + direction.y + 5, 3, 0, Math.PI * 2);
-
+    ctx.arc(head.x * cellSize + params.dx1, head.y * cellSize + params.dy1, 3, 0, Math.PI * 2);
     ctx.fill();
 
     // Правый глаз (верхний правый угол головы)
     ctx.fillStyle = 'green'
     ctx.beginPath();
-    ctx.arc(head.x * cellSize + 5, head.y * cellSize + 20, 3, 0, Math.PI * 2);
+    ctx.arc(head.x * cellSize + params.dx2, head.y * cellSize + params.dy2, 3, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -203,6 +207,13 @@ const renderGame = (canvas, state) => {
     drawCell(ctx, state.foodX2, 'green')
 }
 
+
+const d = { //todo: scale size
+    Up: {dx1: 5, dy1: 5, dx2: 5, dy2: -20},
+    Down: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
+    Left: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
+    Right: {dx1: 5, dy1: 5, dx2: 5, dy2: 20}
+}
 
 const keyToDirection = {
     ArrowUp: {dx: 0, dy: -1},
