@@ -18,6 +18,7 @@ const createInitialState = () => {
 
     const food = {x: 4, y: 4}
     const foodX2 = {x: 8, y: 8}
+    const foodX2Count =  0
     // const leftEye = {x: 7, y: 6}
     // const rightEye = {x: 7, y: 6}
     return {
@@ -25,6 +26,7 @@ const createInitialState = () => {
         walls: walls,
         food: food,
         foodX2: foodX2,
+        foodX2Count: foodX2Count,
         // leftEye: leftEye,
         // rightEye: rightEye,
         direction: initDirection,
@@ -96,6 +98,7 @@ const getEmptyCell = (currentState) => {
 const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
     const tmpTail = currentState.snake[currentState.snake.length - 1]
+
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
         return {...currentState, status: "gameOver"}
@@ -116,24 +119,20 @@ const getNextGameState = (currentState, direction) => {
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
     //todo: snake + 1 ???
-    if (compareCells(tmpHead, currentState.food)) {
+    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 ) {
         const food = getEmptyCell(currentState)
         console.log(food, " food")
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
         // const snakeNew = []
-        //todo: check direction
-        // for (let i= snake.length - 1; i < currentState.snake.length; i++) {
-        //     snake.push({x: currentState.snake[i].x + 1, y: currentState.snake[i].y + 1})
-        // }
-        return {...currentState, snake: snake, food: food, score: score}
+        return {...currentState, snake: snake, food: food, score: score, foodX2Count:  currentState.foodX2Count - 1}
     }
     if (compareCells(tmpHead, currentState.foodX2)) {
         const foodX2 = getEmptyCell(currentState)
         console.log(foodX2, " foodX2")
         const score = currentState.score * 2
         const snake = [tmpHead, ...currentState.snake]
-        return {...currentState, snake: snake, foodX2: foodX2, score: score}
+        return {...currentState, snake: snake, foodX2: foodX2, score: score, foodX2Count: 5}
     }
     return {...currentState, snake: snake}
 }
@@ -155,18 +154,31 @@ const drawGrid = (ctx) => {
     ctx.lineWidth = 1
     ctx.stroke()
 }
-const drawEyes = (ctx, head) => {
+const drawEyes = (ctx, head, direction) => {
     // const eyeSize = size / 4
     // const pupilSize = eyeSize / 2
     // const leftEye = {x: head.x + size - eyeSize * 1.5, y: head.y}
+    ctx.fillStyle = 'black'
+    ctx.fillRect(head.x * cellSize, head.y * cellSize, cellSize, cellSize)
 
+    // const newDirection = keyToDirection[e.key]
+    // console.log(direction, " direction")
+    const key = Object.keys(keyToDirection).find(k => keyToDirection[k] === direction)
+    console.log(key, " key")
+
+    // Левый глаз (нижний левый угол головы)
+    ctx.fillStyle = 'green'
     ctx.beginPath();
-    ctx.arc(head.x + 5, head.y + 5, 3, 0, Math.PI * 2);
+    // console.log(key, " dir x")
+    // ctx.arc(head.x * cellSize + 10, head.y * cellSize + 5, 3, 0, Math.PI * 2);
+    ctx.arc(head.x * cellSize + direction.x + 4, head.y * cellSize + direction.y + 5, 3, 0, Math.PI * 2);
+
     ctx.fill();
 
     // Правый глаз (верхний правый угол головы)
+    ctx.fillStyle = 'green'
     ctx.beginPath();
-    ctx.arc(head.x + cellSize - 5, head.y + 5, 3, 0, Math.PI * 2);
+    ctx.arc(head.x * cellSize + 5, head.y * cellSize + 20, 3, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -179,7 +191,7 @@ const renderGame = (canvas, state) => {
     // }
     for (let i = 0; i < state.snake.length; i++) {
         if (i === 0) {
-            drawEyes(ctx, state.snake[i])
+            drawEyes(ctx, state.snake[i], state.direction)
         } else {
             drawCell(ctx, state.snake[i], 'black')
         }
