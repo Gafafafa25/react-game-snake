@@ -13,17 +13,17 @@ const isOutside = (head) => {
     return head.x < 0 || head.y < 0 || head.x >= COLUMNS || head.y >= ROWS
 }
 const createInitialState = () => {
-    const walls = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
-    const food = {x: 4, y: 4}
-    const foodX2 = {x: 8, y: 8}
-    const foodX2Count = 0
+    const WALLS = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
+    const FOOD = {x: 4, y: 4}
+    const FOODX2 = {x: 8, y: 8}
+    const FOODX2COUNT = 0
 
     return {
         snake: INITSNAKE,
-        walls: walls,
-        food: food,
-        foodX2: foodX2,
-        foodX2Count: foodX2Count,
+        walls: WALLS,
+        food: FOOD,
+        foodX2: FOODX2,
+        foodX2Count: FOODX2COUNT,
         direction: INITDIRECTION,
         score: 0,
         strictMode: false,
@@ -118,7 +118,6 @@ const getNextGameState = (currentState, direction) => {
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
-    //todo: snake + 1 ???
     if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0) {
         const food = getEmptyCell(currentState)
         console.log(food, " food")
@@ -214,7 +213,7 @@ const renderGame = (canvas, state) => {
 }
 
 
-const d = { //todo: scale size
+const d = { //todo: scale size //directionKey error - everytime Initial state (Right)
     Up: {dx1: 25, dy1: 45, dx2: 45, dy2: 10},
     Down: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
     Left: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
@@ -256,7 +255,7 @@ const Game = () => {
     }, [gameState])
 
     useEffect(() => {
-        const handleKeyDown = (e) => { //todo: bug - sometimes not only in one side
+        const handleKeyDown = (e) => {
             console.log(e.code, " key")
             if (e.code === "Space") {
                 setGameState((gameState) => {
