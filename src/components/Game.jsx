@@ -1,35 +1,30 @@
 import {useEffect, useState, useRef} from "react";
 
-const cellSize = 30
-const columns = 20
-const rows = 10
-const gameSpeed = 200
-const initSnake = [{x: 7, y: 6}, {x: 6, y: 6}, {x: 5, y: 6}]
-const initDirection = {dx: 1, dy: 0}
+const CELLSIZE = 30
+const COLUMNS = 20
+const ROWS = 10
+const GAMESPEED = 200
+const INITSNAKE = [{x: 7, y: 6}, {x: 6, y: 6}, {x: 5, y: 6}]
+const INITDIRECTION = {dx: 1, dy: 0}
 const compareCells = (cell1, cell2) => {
     return cell1.x === cell2.x && cell1.y === cell2.y
 }
 const isOutside = (head) => {
-    return head.x < 0 || head.y < 0 || head.x >= columns || head.y >= rows
+    return head.x < 0 || head.y < 0 || head.x >= COLUMNS || head.y >= ROWS
 }
 const createInitialState = () => {
     const walls = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
-    // const walls = []
-
     const food = {x: 4, y: 4}
     const foodX2 = {x: 8, y: 8}
     const foodX2Count = 0
-    // const leftEye = {x: 7, y: 6}
-    // const rightEye = {x: 7, y: 6}
+
     return {
-        snake: initSnake,
+        snake: INITSNAKE,
         walls: walls,
         food: food,
         foodX2: foodX2,
         foodX2Count: foodX2Count,
-        // leftEye: leftEye,
-        // rightEye: rightEye,
-        direction: initDirection,
+        direction: INITDIRECTION,
         score: 0,
         strictMode: false,
         status: "active"
@@ -42,13 +37,13 @@ const getNextHead = (head, direction, strictMode) => {
             return {x: 0, y: nextHead.y}
         }
         if (direction.dx === -1 && direction.dy === 0) {
-            return {x: columns - 1, y: nextHead.y}
+            return {x: COLUMNS - 1, y: nextHead.y}
         }
         if (direction.dx === 0 && direction.dy === 1) {
             return {x: nextHead.x, y: 0}
         }
         if (direction.dx === 0 && direction.dy === -1) {
-            return {x: nextHead.x, y: rows - 1}
+            return {x: nextHead.x, y: ROWS - 1}
         }
     }
     return {x: head.x + direction.dx, y: head.y + direction.dy}
@@ -58,15 +53,16 @@ const getEmptyCell = (currentState) => {
     let isTouchedTail = 0
     let isTouchedWall = 0
     let isTouchedFood = 0
+    let isTouchedFoodX2 = 0
     do {
         console.log("!")
         isTouchedTail = 0
         isTouchedWall = 0
         isTouchedFood = 0
-        //todo: isTouchedFoodX2
+        isTouchedFoodX2 = 0
 
-        randomX = Math.floor(Math.random() * (columns - 3)) + 2
-        randomY = Math.floor(Math.random() * (rows - 3)) + 2
+        randomX = Math.floor(Math.random() * (COLUMNS - 3)) + 2
+        randomY = Math.floor(Math.random() * (ROWS - 3)) + 2
 
         // для проверки попадания в хвост
         // randomX = snake[Math.floor(snake.length / 2)].x
@@ -91,7 +87,11 @@ const getEmptyCell = (currentState) => {
             isTouchedFood = 1
             break
         }
-    } while (isTouchedTail === 1 || isTouchedWall === 1 || isTouchedFood === 1)
+        if (randomX === currentState.foodX2.x && randomY === currentState.foodX2.y) {
+            isTouchedFoodX2 = 1
+            break
+        }
+    } while (isTouchedTail === 1 || isTouchedWall === 1 || isTouchedFood === 1 || isTouchedFoodX2 === 1)
     return {x: randomX, y: randomY}
 }
 
@@ -138,17 +138,17 @@ const getNextGameState = (currentState, direction) => {
 }
 const drawCell = (ctx, cell, color) => {
     ctx.fillStyle = color
-    ctx.fillRect(cell.x * cellSize, cell.y * cellSize, cellSize, cellSize)
+    ctx.fillRect(cell.x * CELLSIZE, cell.y * CELLSIZE, CELLSIZE, CELLSIZE)
 }
 const drawGrid = (ctx) => {
     ctx.beginPath()
-    for (let x = 0; x < cellSize * columns; x += cellSize) {
+    for (let x = 0; x < CELLSIZE * COLUMNS; x += CELLSIZE) {
         ctx.moveTo(x, 0)
-        ctx.lineTo(x, rows * cellSize)
+        ctx.lineTo(x, ROWS * CELLSIZE)
     }
-    for (let y = 0; y < cellSize * rows; y += cellSize) {
+    for (let y = 0; y < CELLSIZE * ROWS; y += CELLSIZE) {
         ctx.moveTo(0, y)
-        ctx.lineTo(columns * cellSize, y)
+        ctx.lineTo(COLUMNS * CELLSIZE, y)
     }
     ctx.strokeStyle = '#ccc'
     ctx.lineWidth = 1
@@ -159,7 +159,7 @@ const drawEyes = (ctx, head, direction) => {
     // const pupilSize = eyeSize / 2
     // const leftEye = {x: head.x + size - eyeSize * 1.5, y: head.y}
     ctx.fillStyle = 'black'
-    ctx.fillRect(head.x * cellSize, head.y * cellSize, cellSize, cellSize)
+    ctx.fillRect(head.x * CELLSIZE, head.y * CELLSIZE, CELLSIZE, CELLSIZE)
 
     let directionKey = ""
     if (compareCells(direction, {dx: 1, dy: 0})) {
@@ -168,21 +168,27 @@ const drawEyes = (ctx, head, direction) => {
         directionKey = "Left"
     } else if (compareCells(direction, {dx: 0, dy: -1})) {
         directionKey = "Up"
-    } //todo: Down
+    }
+    else if (compareCells(direction, {dx: 0, dy: 1})) {
+        directionKey = "Down"
+    }
     const params = d[directionKey]
+    console.log(params, " params")
+    console.log(directionKey, " directionKey")
+
 
 
 
     // Левый глаз (нижний левый угол головы)
     ctx.fillStyle = 'green'
     ctx.beginPath();
-    ctx.arc(head.x * cellSize + params.dx1, head.y * cellSize + params.dy1, 3, 0, Math.PI * 2);
+    ctx.arc(head.x * CELLSIZE + params.dx1, head.y * CELLSIZE + params.dy1, 3, 0, Math.PI * 2);
     ctx.fill();
 
     // Правый глаз (верхний правый угол головы)
     ctx.fillStyle = 'green'
     ctx.beginPath();
-    ctx.arc(head.x * cellSize + params.dx2, head.y * cellSize + params.dy2, 3, 0, Math.PI * 2);
+    ctx.arc(head.x * CELLSIZE + params.dx2, head.y * CELLSIZE + params.dy2, 3, 0, Math.PI * 2);
     ctx.fill();
 }
 
@@ -209,7 +215,7 @@ const renderGame = (canvas, state) => {
 
 
 const d = { //todo: scale size
-    Up: {dx1: 5, dy1: 5, dx2: 5, dy2: -20},
+    Up: {dx1: 25, dy1: 45, dx2: 45, dy2: 10},
     Down: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
     Left: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
     Right: {dx1: 5, dy1: 5, dx2: 5, dy2: 20}
@@ -226,7 +232,7 @@ const keyToDirection = {
 const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
     const canvasRef = useRef(null)
-    const directionRef = useRef(initDirection)
+    const directionRef = useRef(INITDIRECTION)
     // const directionRef = useRef(initDirection) //todo: directionRef2
 
 
@@ -238,7 +244,7 @@ const Game = () => {
                 }
                 return getNextGameState(currentGameState, directionRef.current)
             })
-        }, gameSpeed)
+        }, GAMESPEED)
         return () => {
             clearInterval(intervalId)
         }
@@ -286,8 +292,8 @@ const Game = () => {
                        onChange={() => setGameState(gameState => ({...gameState, strictMode: !gameState.strictMode}))}/>
                 <label htmlFor="option1"> Strict boundaries</label>
             </div>
-            <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={columns * cellSize}
-                    height={rows * cellSize}/>
+            <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={COLUMNS * CELLSIZE}
+                    height={ROWS * CELLSIZE}/>
         </section>
     )
 }
