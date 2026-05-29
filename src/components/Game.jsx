@@ -17,6 +17,8 @@ const createInitialState = () => {
     const FOOD = {x: 4, y: 4}
     const FOODX2 = {x: 8, y: 8}
     const FOODX2COUNT = 0
+    const COLLISION = 0
+    const LIVESCOUNTER = 3
 
     return {
         snake: INITSNAKE,
@@ -24,10 +26,13 @@ const createInitialState = () => {
         food: FOOD,
         foodX2: FOODX2,
         foodX2Count: FOODX2COUNT,
+        collision: COLLISION,
         direction: INITDIRECTION,
+        livesCounter: LIVESCOUNTER,
         score: 0,
         strictMode: false,
-        status: "active"
+        status: "active",
+        statusColor: "green"
     }
 }
 const getNextHead = (head, direction, strictMode) => {
@@ -55,7 +60,6 @@ const getEmptyCell = (currentState) => {
     let isTouchedFood = 0
     let isTouchedFoodX2 = 0
     do {
-        console.log("!")
         isTouchedTail = 0
         isTouchedWall = 0
         isTouchedFood = 0
@@ -71,16 +75,12 @@ const getEmptyCell = (currentState) => {
             if (randomX === x && randomY === y) {
                 isTouchedTail = 1
                 break
-                // alert(randomX, randomY)
-                // alert("here")
             }
         }
         for (const {x, y} of currentState.walls) {
             if (randomX === x && randomY === y) {
                 isTouchedWall = 1
                 break
-                // alert(randomX, randomY)
-                // alert("here")
             }
         }
         if (randomX === currentState.food.x && randomY === currentState.food.y) {
@@ -97,24 +97,26 @@ const getEmptyCell = (currentState) => {
 
 const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
-    const tmpTail = currentState.snake[currentState.snake.length - 1]
+    // const tmpTail = currentState.snake[currentState.snake.length - 1]
 
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
-        return {...currentState, status: "gameOver"}
+        return {...currentState, status: "gameOver", statusColor: "red"}
     }
-    // if (isOutside(tmpHead) && currentState.strictMode === false) {
+   for (let i = 1; i < currentState.snake.length; i++) {
+       if (compareCells(tmpHead, currentState.snake[i])) {
+           // drawCross() // add status -1
+           return {...currentState, collision: currentState.snake[i]}
+       }
+   }
+    // if (compareCells(tmpHead, tmpTail)) {
     //     // alert("gameOver")
-    //     return {...currentState}
-    // }// fix update tmpHead
-    if (compareCells(tmpHead, tmpTail)) {
-        // alert("gameOver")
-        return {...currentState, status: "gameOver"}
-    }
+    //     return {...currentState, status: "gameOver"}
+    // }
     for (let i = 0; i < currentState.walls.length; i++) {
         if (compareCells(tmpHead, currentState.walls[i])) {
             // alert("gameOver")
-            return {...currentState, status: "gameOver"}
+            return {...currentState, status: "gameOver", statusColor: "red"}
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
@@ -123,7 +125,6 @@ const getNextGameState = (currentState, direction) => {
         console.log(food, " food")
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
-        // const snakeNew = []
         return {...currentState, snake: snake, food: food, score: score, foodX2Count: currentState.foodX2Count - 1}
     }
     if (compareCells(tmpHead, currentState.foodX2)) {
@@ -175,9 +176,6 @@ const drawEyes = (ctx, head, direction) => {
     console.log(params, " params")
     console.log(directionKey, " directionKey")
 
-
-
-
     // Левый глаз (нижний левый угол головы)
     ctx.fillStyle = 'green'
     ctx.beginPath();
@@ -190,14 +188,23 @@ const drawEyes = (ctx, head, direction) => {
     ctx.arc(head.x * CELLSIZE + params.dx2, head.y * CELLSIZE + params.dy2, 3, 0, Math.PI * 2);
     ctx.fill();
 }
+const drawCross = (ctx, collision) => {
+    ctx.strokeStyle = 'red';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    // Линия от верхнего левого к нижнему правому
+    ctx.moveTo(collision.x - CELLSIZE / 2, collision.y - CELLSIZE / 2);
+    ctx.lineTo(collision.x + CELLSIZE / 2, collision.y + CELLSIZE / 2);
+    // Линия от нижнего левого к верхнему правому
+    ctx.moveTo(collision.x - CELLSIZE / 2, collision.y + CELLSIZE / 2);
+    ctx.lineTo(collision.x + CELLSIZE / 2, collision.y - CELLSIZE / 2);
+    ctx.stroke();
+}
 
 const renderGame = (canvas, state) => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawGrid(ctx)
-    // for (let part of state.snake) {
-    //     drawCell(ctx, part, 'black')
-    // }
     for (let i = 0; i < state.snake.length; i++) {
         if (i === 0) {
             drawEyes(ctx, state.snake[i], state.direction)
@@ -230,10 +237,16 @@ const keyToDirection = {
 
 const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
+    const [lives, setLives] = useState(3)
+    const maxLives = 5
     const canvasRef = useRef(null)
     const directionRef = useRef(INITDIRECTION)
-    // const directionRef = useRef(initDirection) //todo: directionRef2
-
+    const addHeart = () => {
+        setLives(prev => Math.min(prev + 1, lives))
+    }
+    const removeHeart = () => {
+        setLives(prev => Math.max(prev - 1, 0))
+    }
 
     useEffect(() => { //main
         const intervalId = setInterval(() => {
@@ -281,15 +294,23 @@ const Game = () => {
         return () => document.removeEventListener('keydown', handleKeyDown)
     }, [])
 
+    // useEffect(() => {
+    //     setLives((lives) => removeHeart())
+    // }, [gameState.collision])
+
     return (
         <section>
             <h1 className="text-green-600">Snake</h1>
             <h2>Score: {gameState.score}</h2>
-            <h2>Status: {gameState.status}</h2>
+            <h2 className={`text-` + gameState.statusColor + `-600`}>Status: {gameState.status}</h2>
             <div>
                 <input type="checkbox" id="option1" checked={gameState.strictMode}
                        onChange={() => setGameState(gameState => ({...gameState, strictMode: !gameState.strictMode}))}/>
                 <label htmlFor="option1"> Strict boundaries</label>
+
+            </div>
+            <div>
+                Lives: {"💛".repeat(gameState.livesCounter)}
             </div>
             <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={COLUMNS * CELLSIZE}
                     height={ROWS * CELLSIZE}/>
