@@ -121,7 +121,12 @@ const getNextGameState = (currentState, direction) => {
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
-    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0) { //fruit collision
+    // if (compareCells(tmpHead, currentState.bonusFood)) {
+    //     const food = getEmptyCell(currentState)
+    //     const score = currentState.score
+    //
+    // }
+    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 || compareCells(tmpHead, currentState.bonusFood)) { //fruit collision
         const food = getEmptyCell(currentState)
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
@@ -212,7 +217,7 @@ const renderGame = (canvas, state) => {
     }
     drawCell(ctx, state.foodX2, 'green')
     if (state.bonusFoodTimer === true) {
-        drawCell(ctx, state.bonusFood, 'red')
+        drawCell(ctx, state.bonusFood, 'purple')
     }
     console.log(state.bonusFoodTimer, " bonusFoodTimer")
 }
@@ -296,8 +301,6 @@ const Game = () => {
             console.log(gameState.bonusFood, " bonusFoodTimerEffect")
             const newFood = getEmptyCell(gameState)
             setGameState((currentGameState) => {
-                // currentGameState.bonusFoodTimer = true
-                // currentGameState.bonusFood = newFood
                 return {...currentGameState, bonusFoodTimer: true, bonusFood: newFood}
             })
         }, 5000)
