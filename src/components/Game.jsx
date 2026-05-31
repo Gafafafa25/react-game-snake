@@ -9,6 +9,9 @@ const INITDIRECTION = {dx: 1, dy: 0}
 const compareCells = (cell1, cell2) => {
     return cell1.x === cell2.x && cell1.y === cell2.y
 }
+const compareDirections = (direction1, direction2) => {
+    return direction1.dx === direction2.dx && direction1.dy === direction2.dy
+}
 const isOutside = (head) => {
     return head.x < 0 || head.y < 0 || head.x >= COLUMNS || head.y >= ROWS
 }
@@ -19,6 +22,8 @@ const createInitialState = () => {
     const FOODX2COUNT = 0
     const COLLISION = 0
     const LIVESCOUNTER = 3
+    const BONUSFOOD = 0
+    const BONUSFOODTIMER = false
 
     return {
         snake: INITSNAKE,
@@ -26,6 +31,8 @@ const createInitialState = () => {
         food: FOOD,
         foodX2: FOODX2,
         foodX2Count: FOODX2COUNT,
+        bonusFood: BONUSFOOD,
+        bonusFoodTimer: BONUSFOODTIMER,
         collision: COLLISION,
         direction: INITDIRECTION,
         livesCounter: LIVESCOUNTER,
@@ -97,8 +104,6 @@ const getEmptyCell = (currentState) => {
 
 const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
-    // const tmpTail = currentState.snake[currentState.snake.length - 1]
-
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
         return {...currentState, status: "gameOver", statusColor: "red"}
@@ -109,32 +114,26 @@ const getNextGameState = (currentState, direction) => {
            return {...currentState, collision: currentState.snake[i]}
        }
    }
-    // if (compareCells(tmpHead, tmpTail)) {
-    //     // alert("gameOver")
-    //     return {...currentState, status: "gameOver"}
-    // }
     for (let i = 0; i < currentState.walls.length; i++) {
         if (compareCells(tmpHead, currentState.walls[i])) {
             // alert("gameOver")
-            return {...currentState, status: "gameOver", statusColor: "red"}
+            return {...currentState, status: "gameOver", statusColor: "red"} //add direction: direction ?
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
-    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0) {
+    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0) { //fruit collision
         const food = getEmptyCell(currentState)
-        console.log(food, " food")
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
-        return {...currentState, snake: snake, food: food, score: score, foodX2Count: currentState.foodX2Count - 1}
+        return {...currentState, snake: snake, food: food, score: score, foodX2Count: currentState.foodX2Count - 1, direction: direction}
     }
     if (compareCells(tmpHead, currentState.foodX2)) {
         const foodX2 = getEmptyCell(currentState)
-        console.log(foodX2, " foodX2")
         const score = currentState.score * 2
         const snake = [tmpHead, ...currentState.snake]
-        return {...currentState, snake: snake, foodX2: foodX2, score: score, foodX2Count: 5}
+        return {...currentState, snake: snake, foodX2: foodX2, score: score, foodX2Count: 5, direction: direction}
     }
-    return {...currentState, snake: snake}
+    return {...currentState, snake: snake, direction: direction}
 }
 const drawCell = (ctx, cell, color) => {
     ctx.fillStyle = color
@@ -155,26 +154,21 @@ const drawGrid = (ctx) => {
     ctx.stroke()
 }
 const drawEyes = (ctx, head, direction) => {
-    // const eyeSize = size / 4
-    // const pupilSize = eyeSize / 2
-    // const leftEye = {x: head.x + size - eyeSize * 1.5, y: head.y}
     ctx.fillStyle = 'black'
     ctx.fillRect(head.x * CELLSIZE, head.y * CELLSIZE, CELLSIZE, CELLSIZE)
 
     let directionKey = ""
-    if (compareCells(direction, {dx: 1, dy: 0})) {
+    if (compareDirections(direction, {dx: 1, dy: 0})) {
         directionKey = "Right"
-    } else if (compareCells(direction, {dx: -1, dy: 0})) {
+    } else if (compareDirections(direction, {dx: -1, dy: 0})) {
         directionKey = "Left"
-    } else if (compareCells(direction, {dx: 0, dy: -1})) {
+    } else if (compareDirections(direction, {dx: 0, dy: -1})) {
         directionKey = "Up"
     }
-    else if (compareCells(direction, {dx: 0, dy: 1})) {
+    else if (compareDirections(direction, {dx: 0, dy: 1})) {
         directionKey = "Down"
     }
     const params = d[directionKey]
-    console.log(params, " params")
-    console.log(directionKey, " directionKey")
 
     // Левый глаз (нижний левый угол головы)
     ctx.fillStyle = 'green'
@@ -205,7 +199,7 @@ const renderGame = (canvas, state) => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawGrid(ctx)
-    for (let i = 0; i < state.snake.length; i++) {
+    for (let i = 0; i < state.snake.length; i++) { //if head
         if (i === 0) {
             drawEyes(ctx, state.snake[i], state.direction)
         } else {
@@ -217,14 +211,18 @@ const renderGame = (canvas, state) => {
         drawCell(ctx, state.walls[i], 'blue')
     }
     drawCell(ctx, state.foodX2, 'green')
+    if (state.bonusFoodTimer === true) {
+        drawCell(ctx, state.bonusFood, 'red')
+    }
+    console.log(state.bonusFoodTimer, " bonusFoodTimer")
 }
 
 
-const d = { //todo: scale size //directionKey error - everytime Initial state (Right)
-    Up: {dx1: 25, dy1: 45, dx2: 45, dy2: 10},
-    Down: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
-    Left: {dx1: 5, dy1: 5, dx2: 0, dy2: -1},
-    Right: {dx1: 5, dy1: 5, dx2: 5, dy2: 20}
+const d = {
+    Up: {dx1: 10, dy1: 15, dx2: 20, dy2: 15},
+    Down: {dx1: 7, dy1: 15, dx2: 20, dy2: 15},
+    Left: {dx1: 15, dy1: 20, dx2: 15, dy2: 10},
+    Right: {dx1: 10, dy1: 10, dx2: 10, dy2: 20}
 }
 
 const keyToDirection = {
@@ -238,15 +236,15 @@ const keyToDirection = {
 const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
     const [lives, setLives] = useState(3)
-    const maxLives = 5
+    // const maxLives = 5
     const canvasRef = useRef(null)
     const directionRef = useRef(INITDIRECTION)
-    const addHeart = () => {
-        setLives(prev => Math.min(prev + 1, lives))
-    }
-    const removeHeart = () => {
-        setLives(prev => Math.max(prev - 1, 0))
-    }
+    // const addHeart = () => {
+    //     setLives(prev => Math.min(prev + 1, lives))
+    // }
+    // const removeHeart = () => {
+    //     setLives(prev => Math.max(prev - 1, 0))
+    // }
 
     useEffect(() => { //main
         const intervalId = setInterval(() => {
@@ -269,7 +267,6 @@ const Game = () => {
 
     useEffect(() => {
         const handleKeyDown = (e) => {
-            console.log(e.code, " key")
             if (e.code === "Space") {
                 setGameState((gameState) => {
                     return {...gameState, status: gameState.status === "active" ? "pause" : "active"}
@@ -292,6 +289,19 @@ const Game = () => {
         }
         document.addEventListener('keydown', handleKeyDown)
         return () => document.removeEventListener('keydown', handleKeyDown)
+    }, [])
+
+    useEffect(() => {
+        const bonusFoodTimer = setInterval(() => {
+            console.log(gameState.bonusFood, " bonusFoodTimerEffect")
+            const newFood = getEmptyCell(gameState)
+            setGameState((currentGameState) => {
+                // currentGameState.bonusFoodTimer = true
+                // currentGameState.bonusFood = newFood
+                return {...currentGameState, bonusFoodTimer: true, bonusFood: newFood}
+            })
+        }, 5000)
+        return () => clearInterval(bonusFoodTimer)
     }, [])
 
     // useEffect(() => {
