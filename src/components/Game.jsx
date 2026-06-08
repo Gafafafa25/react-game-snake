@@ -24,6 +24,8 @@ const createInitialState = () => {
     const LIVESCOUNTER = 3
     const BONUSFOOD = 0
     const BONUSFOODTIMER = false
+    const TIMERTIME = 7
+    const COUNTDOWN = 7
 
     return {
         snake: INITSNAKE,
@@ -32,10 +34,12 @@ const createInitialState = () => {
         foodX2: FOODX2,
         foodX2Count: FOODX2COUNT,
         bonusFood: BONUSFOOD,
-        bonusFoodTimer: BONUSFOODTIMER,
+        bonusFoodTimer: BONUSFOODTIMER, // todo: rename
+        timerTime: TIMERTIME, //todo: rename startTimer
+        countdown: COUNTDOWN,
         collision: COLLISION,
         direction: INITDIRECTION,
-        livesCounter: LIVESCOUNTER,
+        livesCounter: LIVESCOUNTER, //todo: rename lives
         score: 0,
         strictMode: false,
         status: "active",
@@ -106,7 +110,7 @@ const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
-        return {...currentState, status: "gameOver", statusColor: "red"}
+        return {...currentState, status: "gameOver", statusColor: "red", livesCounter: currentState.livesCounter - 1}
     }
    for (let i = 1; i < currentState.snake.length; i++) {
        if (compareCells(tmpHead, currentState.snake[i])) {
@@ -126,7 +130,9 @@ const getNextGameState = (currentState, direction) => {
     //     const score = currentState.score
     //
     // }
-    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 || compareCells(tmpHead, currentState.bonusFood)) { //fruit collision
+    //fruit collision
+    //todo: all collisions in one function
+    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 || compareCells(tmpHead, currentState.bonusFood)) {
         const food = getEmptyCell(currentState)
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
@@ -138,6 +144,8 @@ const getNextGameState = (currentState, direction) => {
         const snake = [tmpHead, ...currentState.snake]
         return {...currentState, snake: snake, foodX2: foodX2, score: score, foodX2Count: 5, direction: direction}
     }
+    //todo: compare foodTimer
+
     return {...currentState, snake: snake, direction: direction}
 }
 const drawCell = (ctx, cell, color) => {
@@ -200,7 +208,13 @@ const drawCross = (ctx, collision) => {
     ctx.stroke();
 }
 
-const renderGame = (canvas, state) => {
+//todo: add function timer
+
+// const countdown = () => {
+//     set
+// }
+
+const renderGame = (canvas, state, seconds) => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawGrid(ctx)
@@ -216,9 +230,18 @@ const renderGame = (canvas, state) => {
         drawCell(ctx, state.walls[i], 'blue')
     }
     drawCell(ctx, state.foodX2, 'green')
-    if (state.bonusFoodTimer === true) {
+    if (state.bonusFoodTimer === true) { //collusion not
         drawCell(ctx, state.bonusFood, 'purple')
+        //todo: add timerTime
+        ctx.font = '20px Arial'
+        ctx.fillStyle = 'white'
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        const textX = state.bonusFood.x * CELLSIZE + CELLSIZE / 2
+        const textY = state.bonusFood.y * CELLSIZE + CELLSIZE / 2
+        ctx.fillText(`${seconds}`, textX, textY)
     }
+
     console.log(state.bonusFoodTimer, " bonusFoodTimer")
 }
 
@@ -240,8 +263,10 @@ const keyToDirection = {
 
 const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
-    const [lives, setLives] = useState(3)
-    // const maxLives = 5
+    // const [lives, setLives] = useState(3)
+    const [seconds, setSeconds] = useState(7) //todo: rename
+    // const MAXLIVES = 5
+    // const MINLIVES = 1
     const canvasRef = useRef(null)
     const directionRef = useRef(INITDIRECTION)
     // const addHeart = () => {
@@ -254,9 +279,10 @@ const Game = () => {
     useEffect(() => { //main
         const intervalId = setInterval(() => {
             setGameState((currentGameState) => {
-                if (currentGameState.status === "pause") {
+                if (currentGameState.status === "pause" || currentGameState.status === "gameOver") { //todo: if contains
                     return currentGameState
                 }
+                console.log("getNextGameState", new Date().getTime())
                 return getNextGameState(currentGameState, directionRef.current)
             })
         }, GAMESPEED)
@@ -267,7 +293,7 @@ const Game = () => {
 
     useEffect(() => {
         //if canvasRef.current
-        renderGame(canvasRef.current, gameState)
+        renderGame(canvasRef.current, gameState, seconds)
     }, [gameState])
 
     useEffect(() => {
@@ -297,15 +323,30 @@ const Game = () => {
     }, [])
 
     useEffect(() => {
-        const bonusFoodTimer = setInterval(() => {
+        const bonusFoodTimer = setTimeout(() => {
             console.log(gameState.bonusFood, " bonusFoodTimerEffect")
             const newFood = getEmptyCell(gameState)
             setGameState((currentGameState) => {
                 return {...currentGameState, bonusFoodTimer: true, bonusFood: newFood}
             })
-        }, 5000)
-        return () => clearInterval(bonusFoodTimer)
+        }, 1000) //delay
+        return () => clearTimeout(bonusFoodTimer)
+    }, [gameState.livesCounter]) //add bonusfood collision //+1 live
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setSeconds(prevSeconds => prevSeconds - 1 < 0 ? 0: prevSeconds - 1)
+        }, 1000) //countdown
+        return () => {
+            clearInterval(interval)
+            setSeconds(7)
+        }
     }, [])
+
+    useEffect(() => {
+        if (seconds !== 0) return //todo: if no timer square
+        setGameState(currentGameState => ({...currentGameState, bonusFoodTimer: false}))
+    }, [seconds])
 
     // useEffect(() => {
     //     setLives((lives) => removeHeart())
