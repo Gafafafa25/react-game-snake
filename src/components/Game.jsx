@@ -38,6 +38,7 @@ const createInitialState = () => {
         timerTime: TIMERTIME, //todo: rename startTimer
         countdown: COUNTDOWN,
         collision: COLLISION,
+        isCollision: false,
         direction: INITDIRECTION,
         livesCounter: LIVESCOUNTER, //todo: rename lives
         score: 0,
@@ -108,10 +109,12 @@ const getEmptyCell = (currentState) => {
 
 const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
-    console.log(currentState.bonusFood, " currentState.bonusFood")
+    // console.log(currentState.bonusFood, " currentState.bonusFood")
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
-        return {...currentState, status: "gameOver", statusColor: "red", livesCounter: currentState.livesCounter - 1}
+        //isCollision
+        // return {...currentState, status: "gameOver", statusColor: "red", livesCounter: currentState.livesCounter - 1}
+        return {...currentState, isCollision: true, livesCounter: currentState.livesCounter - 1}
     }
    for (let i = 1; i < currentState.snake.length; i++) {
        if (compareCells(tmpHead, currentState.snake[i])) {
@@ -122,6 +125,7 @@ const getNextGameState = (currentState, direction) => {
     for (let i = 0; i < currentState.walls.length; i++) {
         if (compareCells(tmpHead, currentState.walls[i])) {
             // alert("gameOver")
+            //status not here?
             return {...currentState, status: "gameOver", statusColor: "red"} //add direction: direction ?
         }
     }
@@ -326,7 +330,7 @@ const Game = () => {
 
     useEffect(() => {
         const bonusFoodTimer = setTimeout(() => {
-            console.log(gameState.bonusFood, " bonusFoodTimerEffect")
+            // console.log(gameState.bonusFood, " bonusFoodTimerEffect")
             const newFood = getEmptyCell(gameState)
             setGameState((currentGameState) => {
                 return {...currentGameState, bonusFoodTimer: true, bonusFood: newFood}
@@ -349,6 +353,16 @@ const Game = () => {
         if (seconds !== 0) return //todo: if no timer square
         setGameState(currentGameState => ({...currentGameState, bonusFoodTimer: false}))
     }, [seconds])
+
+    useEffect(() => {
+        const delay3Seconds = setTimeout(() => {
+            setGameState(currentGameState => ({...currentGameState, status: "pause"}))
+        }, 3000)
+        return () => {
+            clearTimeout(delay3Seconds)
+            setGameState(currentGameState => ({...currentGameState, status: "active", isCollision: false}))
+        }
+    }, [gameState.isCollision])
 
     // useEffect(() => {
     //     setLives((lives) => removeHeart())
