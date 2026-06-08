@@ -108,6 +108,7 @@ const getEmptyCell = (currentState) => {
 
 const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
+    console.log(currentState.bonusFood, " currentState.bonusFood")
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
         return {...currentState, status: "gameOver", statusColor: "red", livesCounter: currentState.livesCounter - 1}
@@ -125,13 +126,15 @@ const getNextGameState = (currentState, direction) => {
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
-    // if (compareCells(tmpHead, currentState.bonusFood)) {
-    //     const food = getEmptyCell(currentState)
-    //     const score = currentState.score
-    //
-    // }
     //fruit collision
     //todo: all collisions in one function
+    if (compareCells(tmpHead, currentState.bonusFood)) {
+        // console.log(" + +++")
+        const bonusFood = getEmptyCell(currentState)
+        //status changes ??
+        return {...currentState, snake: snake, score: currentState.score,
+            direction: direction, bonusFood: bonusFood, livesCounter: currentState.livesCounter + 1, bonusFoodTimer: false}
+    }
     if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 || compareCells(tmpHead, currentState.bonusFood)) {
         const food = getEmptyCell(currentState)
         const score = currentState.score + 1
@@ -144,7 +147,6 @@ const getNextGameState = (currentState, direction) => {
         const snake = [tmpHead, ...currentState.snake]
         return {...currentState, snake: snake, foodX2: foodX2, score: score, foodX2Count: 5, direction: direction}
     }
-    //todo: compare foodTimer
 
     return {...currentState, snake: snake, direction: direction}
 }
@@ -242,7 +244,7 @@ const renderGame = (canvas, state, seconds) => {
         ctx.fillText(`${seconds}`, textX, textY)
     }
 
-    console.log(state.bonusFoodTimer, " bonusFoodTimer")
+    // console.log(state.bonusFoodTimer, " bonusFoodTimer")
 }
 
 
@@ -282,7 +284,7 @@ const Game = () => {
                 if (currentGameState.status === "pause" || currentGameState.status === "gameOver") { //todo: if contains
                     return currentGameState
                 }
-                console.log("getNextGameState", new Date().getTime())
+                // console.log("getNextGameState", new Date().getTime())
                 return getNextGameState(currentGameState, directionRef.current)
             })
         }, GAMESPEED)
