@@ -21,7 +21,7 @@ const createInitialState = () => {
     const FOODX2 = {x: 8, y: 8}
     const FOODX2COUNT = 0
     const COLLISION = 0
-    const LIVESCOUNTER = 3
+    const LIVES = 3
     const BONUSFOOD = 0
     const BONUSFOODTIMER = false
     const TIMERTIME = 7
@@ -33,14 +33,14 @@ const createInitialState = () => {
         food: FOOD,
         foodX2: FOODX2,
         foodX2Count: FOODX2COUNT,
-        bonusFood: BONUSFOOD,
-        bonusFoodTimer: BONUSFOODTIMER, // todo: rename
+        bonusFood: BONUSFOOD, //todo: healthBox
+        bonusFoodTimer: BONUSFOODTIMER, // todo: rename isHealthBox === {X: -1, Y: -1}
         startTimer: TIMERTIME,
         countdown: COUNTDOWN,
         collision: COLLISION,
         isCollision: false,
         direction: INITDIRECTION,
-        livesCounter: LIVESCOUNTER, //todo: rename lives
+        lives: LIVES,
         score: 0,
         strictMode: false,
         status: "active",
@@ -113,8 +113,8 @@ const getNextGameState = (currentState, direction) => {
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         // alert("gameOver")
         //isCollision
-        // return {...currentState, status: "gameOver", statusColor: "red", livesCounter: currentState.livesCounter - 1}
-        return {...currentState, isCollision: true, livesCounter: currentState.livesCounter - 1}
+        // return {...currentState, status: "gameOver", statusColor: "red", lives: currentState.lives - 1}
+        return {...currentState, isCollision: true, lives: currentState.lives - 1, status: "pause"}
     }
    for (let i = 1; i < currentState.snake.length; i++) {
        if (compareCells(tmpHead, currentState.snake[i])) {
@@ -133,11 +133,13 @@ const getNextGameState = (currentState, direction) => {
     //fruit collision
     //todo: all collisions in one function
     if (compareCells(tmpHead, currentState.bonusFood)) {
-        // console.log(" + +++")
-        const bonusFood = getEmptyCell(currentState)
+        console.log(" + +++")
+        // const bonusFood = getEmptyCell(currentState)
         //status changes ??
+        // return {...currentState, snake: snake, score: currentState.score,
+        //     direction: direction, bonusFood: bonusFood, lives: currentState.lives + 1, bonusFoodTimer: false}
         return {...currentState, snake: snake, score: currentState.score,
-            direction: direction, bonusFood: bonusFood, livesCounter: currentState.livesCounter + 1, bonusFoodTimer: false}
+            direction: direction,  lives: currentState.lives + 1, bonusFoodTimer: false}
     }
     if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 || compareCells(tmpHead, currentState.bonusFood)) {
         const food = getEmptyCell(currentState)
@@ -329,15 +331,18 @@ const Game = () => {
     }, [])
 
     useEffect(() => {
+        //todo: if lives < 3
         const bonusFoodTimer = setTimeout(() => {
             // console.log(gameState.bonusFood, " bonusFoodTimerEffect")
             const newFood = getEmptyCell(gameState)
             setGameState((currentGameState) => {
                 return {...currentGameState, bonusFoodTimer: true, bonusFood: newFood}
+                // return {...currentGameState, bonusFoodTimer: true}
+
             })
         }, 1000) //delay
         return () => clearTimeout(bonusFoodTimer)
-    }, [gameState.livesCounter]) //add bonusfood collision //+1 live
+    }, [gameState.lives]) //add bonusfood collision //+1 live
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -355,12 +360,13 @@ const Game = () => {
     }, [seconds])
 
     useEffect(() => {
+        if (!gameState.isCollision) return
         const delay3Seconds = setTimeout(() => {
-            setGameState(currentGameState => ({...currentGameState, status: "pause"}))
+            setGameState(currentGameState => ({...currentGameState, status: "active"}))
         }, 3000)
         return () => {
             clearTimeout(delay3Seconds)
-            setGameState(currentGameState => ({...currentGameState, status: "active", isCollision: false}))
+            setGameState(currentGameState => ({...currentGameState, isCollision: false}))
         }
     }, [gameState.isCollision])
 
@@ -380,7 +386,7 @@ const Game = () => {
 
             </div>
             <div>
-                Lives: {"💛".repeat(gameState.livesCounter)}
+                Lives: {"💛".repeat(gameState.lives)}
             </div>
             <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={COLUMNS * CELLSIZE}
                     height={ROWS * CELLSIZE}/>
