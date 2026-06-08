@@ -35,7 +35,7 @@ const createInitialState = () => {
         foodX2Count: FOODX2COUNT,
         bonusFood: BONUSFOOD,
         bonusFoodTimer: BONUSFOODTIMER, // todo: rename
-        timerTime: TIMERTIME, //todo: rename startTimer
+        startTimer: TIMERTIME,
         countdown: COUNTDOWN,
         collision: COLLISION,
         isCollision: false,
