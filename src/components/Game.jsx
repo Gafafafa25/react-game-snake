@@ -6,6 +6,17 @@ const ROWS = 10
 const GAMESPEED = 200
 const INITSNAKE = [{x: 7, y: 6}, {x: 6, y: 6}, {x: 5, y: 6}]
 const INITDIRECTION = {dx: 1, dy: 0}
+const COUNTDOWN = 7
+const WALLS = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
+const FOOD = {x: 4, y: 4}
+const FOODX2 = {x: 8, y: 8}
+const FOODX2COUNT = 0
+const COLLISION = {x: -1, y: -1}
+const LIVES = 3
+const BONUSFOOD = 0
+const BONUSFOODTIMER = false
+const TIMERTIME = 7 //rename
+
 const compareCells = (cell1, cell2) => {
     return cell1.x === cell2.x && cell1.y === cell2.y
 }
@@ -16,17 +27,6 @@ const isOutside = (head) => {
     return head.x < 0 || head.y < 0 || head.x >= COLUMNS || head.y >= ROWS
 }
 const createInitialState = () => {
-    const WALLS = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
-    const FOOD = {x: 4, y: 4}
-    const FOODX2 = {x: 8, y: 8}
-    const FOODX2COUNT = 0
-    const COLLISION = {x: -1, y: -1}
-    const LIVES = 3
-    const BONUSFOOD = 0
-    const BONUSFOODTIMER = false
-    const TIMERTIME = 7
-    const COUNTDOWN = 7
-
     return {
         snake: INITSNAKE,
         walls: WALLS,
@@ -36,7 +36,6 @@ const createInitialState = () => {
         bonusFood: BONUSFOOD, //todo: healthBox
         bonusFoodTimer: BONUSFOODTIMER, // todo: rename isHealthBox === {X: -1, Y: -1}
         startTimer: TIMERTIME,
-        countdown: COUNTDOWN,
         collision: COLLISION,
         isCollision: false,
         direction: INITDIRECTION,
@@ -248,6 +247,19 @@ const drawCross = (ctx, collision) => {
     ctx.moveTo(collision.x - CELLSIZE / 2, collision.y + CELLSIZE / 2);
     ctx.lineTo(collision.x + CELLSIZE / 2, collision.y - CELLSIZE / 2);
     ctx.stroke();
+
+    ctx.beginPath();
+    // Линия от верхнего левого к нижнему правому
+    let row = 3
+    let col = 2
+    // ctx.moveTo(row - CELLSIZE / 2, col - CELLSIZE / 2);
+    ctx.moveTo(row * CELLSIZE , col * CELLSIZE );
+    ctx.lineTo(row * CELLSIZE + CELLSIZE, col * CELLSIZE + CELLSIZE);
+    // Линия от нижнего левого к верхнему правому
+    // ctx.moveTo(row - CELLSIZE / 2, col + CELLSIZE / 2);
+    // ctx.lineTo(row + CELLSIZE / 2, col - CELLSIZE / 2);
+    ctx.stroke();
+
 }
 
 //todo: add function timer
@@ -279,9 +291,10 @@ const renderGame = (canvas, state, seconds) => {
         const textY = state.bonusFood.y * CELLSIZE + CELLSIZE / 2
         ctx.fillText(`${seconds}`, textX, textY)
     }
-    if (!compareCells(state.collision, {dx: -1, dy: -1})) {
+    if (!compareCells(state.collision, {x: -1, y: -1})) {
         drawCross(ctx, state.collision)
     }
+    drawCross(ctx, state.collision)
 }
 
 
@@ -302,7 +315,7 @@ const keyToDirection = {
 
 const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
-    const [seconds, setSeconds] = useState(7) //todo: rename
+    const [seconds, setSeconds] = useState(COUNTDOWN) //todo: rename
     const canvasRef = useRef(null)
     const directionRef = useRef(INITDIRECTION)
 
@@ -323,7 +336,7 @@ const Game = () => {
     useEffect(() => {
         //if canvasRef.current
         renderGame(canvasRef.current, gameState, seconds)
-    }, [gameState])
+    }, [gameState, seconds])
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -355,8 +368,9 @@ const Game = () => {
         if (gameState.lives < 3) {
             const bonusFoodTimer = setTimeout(() => {
                 // console.log(gameState.bonusFood, " bonusFoodTimerEffect")
-                const newFood = getEmptyCell(gameState)
+                setSeconds(COUNTDOWN)
                 setGameState((currentGameState) => {
+                    const newFood = getEmptyCell(gameState)
                     return {...currentGameState, bonusFoodTimer: true, bonusFood: newFood}
                     // return {...currentGameState, bonusFoodTimer: true}
 
@@ -368,23 +382,38 @@ const Game = () => {
 
     useEffect(() => {
         const interval = setInterval(() => {
-            setSeconds(prevSeconds => prevSeconds - 1 < 0 ? 0 : prevSeconds - 1)
-        }, 1000) //countdown
-        return () => {
-            clearInterval(interval)
-            setSeconds(7)
-        }
-    }, [])
+            setSeconds(prevSeconds => {
+                if (prevSeconds <= 1) {
+                    setGameState((currentGameState) => ({...currentGameState, bonusFoodTimer: false}))
+                    return COUNTDOWN
+                }
+                return prevSeconds - 1
+            })
+        }, 1000)
+        return () => clearInterval(interval)
+    }, [gameState.bonusFoodTimer, gameState.status])
 
-    useEffect(() => {
-        if (seconds !== 0) return //todo: if no timer square
-        setGameState(currentGameState => ({...currentGameState, bonusFoodTimer: false}))
-    }, [seconds])
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         setSeconds(prevSeconds => prevSeconds - 1 < 0 ? 0 : prevSeconds - 1)
+    //     }, 1000) //countdown
+    //     return () => {
+    //         clearInterval(interval)
+    //         setSeconds(7)
+    //     }
+    // }, [])
+
+    // useEffect(() => {
+    //     if (seconds !== 0) return //todo: if no timer square
+    //     setGameState(currentGameState => ({...currentGameState, bonusFoodTimer: false}))
+    // }, [seconds])
+
+
 
     useEffect(() => {
         if (!gameState.isCollision) return
         const delay3Seconds = setTimeout(() => {
-            alert("Oops... You need to change direction and press the space bar")
+            console.log("Oops... You need to change direction and press the space bar") //todo: message
             setGameState(currentGameState => ({...currentGameState, status: "active"}))
         }, 3000)
         return () => {
