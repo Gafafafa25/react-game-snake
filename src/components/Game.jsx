@@ -199,9 +199,6 @@ const drawGrid = (ctx) => {
     ctx.stroke()
 }
 const drawEyes = (ctx, head, direction) => {
-    // ctx.fillStyle = 'black'
-    // ctx.fillRect(head.x * CELLSIZE, head.y * CELLSIZE, CELLSIZE, CELLSIZE)
-
     let directionKey = ""
     if (compareDirections(direction, {dx: 1, dy: 0})) {
         directionKey = "Right"
@@ -220,10 +217,6 @@ const drawEyes = (ctx, head, direction) => {
     ctx.fill()
     ctx.closePath()
 
-    //Голова
-    // ctx.fillStyle = 'black'
-    // ctx.fillRect(head.x * CELLSIZE, head.y * CELLSIZE, CELLSIZE, CELLSIZE)
-
     // Левый глаз (нижний левый угол головы)
     ctx.fillStyle = 'yellow'
     ctx.beginPath();
@@ -239,30 +232,18 @@ const drawEyes = (ctx, head, direction) => {
 const drawCross = (ctx, collision) => {
     ctx.strokeStyle = 'red';
     ctx.lineWidth = 3;
-    ctx.beginPath();
     // Линия от верхнего левого к нижнему правому
-    ctx.moveTo(collision.x - CELLSIZE / 2, collision.y - CELLSIZE / 2);
-    ctx.lineTo(collision.x + CELLSIZE / 2, collision.y + CELLSIZE / 2);
-    // Линия от нижнего левого к верхнему правому
-    ctx.moveTo(collision.x - CELLSIZE / 2, collision.y + CELLSIZE / 2);
-    ctx.lineTo(collision.x + CELLSIZE / 2, collision.y - CELLSIZE / 2);
+    ctx.beginPath();
+    ctx.moveTo(collision.x * CELLSIZE, collision.y * CELLSIZE);
+    ctx.lineTo(collision.x * CELLSIZE + CELLSIZE, collision.y * CELLSIZE + CELLSIZE);
     ctx.stroke();
 
-    ctx.beginPath();
-    // Линия от верхнего левого к нижнему правому
-    let row = 3
-    let col = 2
-    // ctx.moveTo(row - CELLSIZE / 2, col - CELLSIZE / 2);
-    ctx.moveTo(row * CELLSIZE , col * CELLSIZE );
-    ctx.lineTo(row * CELLSIZE + CELLSIZE, col * CELLSIZE + CELLSIZE);
     // Линия от нижнего левого к верхнему правому
-    // ctx.moveTo(row - CELLSIZE / 2, col + CELLSIZE / 2);
-    // ctx.lineTo(row + CELLSIZE / 2, col - CELLSIZE / 2);
+    ctx.beginPath();
+    ctx.moveTo(collision.x * CELLSIZE + CELLSIZE , collision.y * CELLSIZE);
+    ctx.lineTo(collision.x * CELLSIZE, collision.y * CELLSIZE + CELLSIZE);
     ctx.stroke();
-
 }
-
-//todo: add function timer
 
 const renderGame = (canvas, state, seconds) => {
     const ctx = canvas.getContext('2d')
