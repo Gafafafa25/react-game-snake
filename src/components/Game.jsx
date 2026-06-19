@@ -6,16 +6,22 @@ const ROWS = 10
 const GAMESPEED = 200
 const INITSNAKE = [{x: 7, y: 6}, {x: 6, y: 6}, {x: 5, y: 6}]
 const INITDIRECTION = {dx: 1, dy: 0}
-const COUNTDOWN = 7
-const WALLS = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
+// const WALLS = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
 const FOOD = {x: 4, y: 4}
 const FOODX2 = {x: 8, y: 8}
 const FOODX2COUNT = 0
 const COLLISION = {x: -1, y: -1}
 const LIVES = 3
-const BONUSFOOD = 0
-const BONUSFOODTIMER = false
-const TIMERTIME = 7 //rename
+const HEALTHBOX = 0
+const ISHEALTHBOX = false
+const HEALTHBOXTIME = 7
+const WALLSMAP = [
+    [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}],
+    [{x: 2, y: 2}, {x: 2, y: 3}],
+    [{x: 2, y: 2}]
+]
+const WALLMAPNUMBER = 0
+const WALLS = WALLSMAP[WALLMAPNUMBER]
 
 const compareCells = (cell1, cell2) => {
     return cell1.x === cell2.x && cell1.y === cell2.y
@@ -30,12 +36,12 @@ const createInitialState = () => {
     return {
         snake: INITSNAKE,
         walls: WALLS,
+        wallsMapNumber: WALLMAPNUMBER,
         food: FOOD,
         foodX2: FOODX2,
         foodX2Count: FOODX2COUNT,
-        bonusFood: BONUSFOOD, //todo: healthBox
-        bonusFoodTimer: BONUSFOODTIMER, // todo: rename isHealthBox === {X: -1, Y: -1}
-        startTimer: TIMERTIME,
+        healthBox: HEALTHBOX,
+        isHealthBox: ISHEALTHBOX,
         collision: COLLISION,
         isCollision: false,
         direction: INITDIRECTION,
@@ -43,7 +49,8 @@ const createInitialState = () => {
         score: 0,
         strictMode: false,
         status: "active",
-        statusColor: "green"
+        statusColor: "green",
+        hasMessage: false
     }
 }
 const getNextHead = (head, direction, strictMode) => {
@@ -108,17 +115,15 @@ const getEmptyCell = (currentState) => {
 
 const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
-    console.log(tmpHead, " tmpHead")
-    // console.log(currentState.bonusFood, " currentState.bonusFood")
+    // console.log(tmpHead, " tmpHead")
     if (isOutside(tmpHead) && currentState.strictMode === true) {
-        // return {...currentState, status: "gameOver", statusColor: "red", lives: currentState.lives - 1}
-        return {...currentState, isCollision: true, lives: currentState.lives - 1, status: "pause", statusColor: "blue",
-        collision: tmpHead}
+        return {
+            ...currentState, isCollision: true, lives: currentState.lives - 1, status: "pause", statusColor: "blue",
+            collision: tmpHead
+        }
     }
     for (let i = 1; i < currentState.snake.length; i++) {
         if (compareCells(tmpHead, currentState.snake[i])) {
-            // drawCross() // add status -1
-            // return {...currentState, collision: currentState.snake[i]} //collision with tail rename
             return {
                 ...currentState,
                 isCollision: true,
@@ -131,31 +136,26 @@ const getNextGameState = (currentState, direction) => {
     }
     for (let i = 0; i < currentState.walls.length; i++) {
         if (compareCells(tmpHead, currentState.walls[i])) {
-            // return {...currentState, status: "gameOver", statusColor: "red"} //add direction: direction ?
             return {
                 ...currentState,
                 isCollision: true,
+                hasMessage: true, //todo: hasMessage, collision
                 collision: tmpHead,
                 lives: currentState.lives - 1,
                 status: "pause",
                 statusColor: "blue"
-            } //add direction: direction ?
-
+            }
         }
     }
     const snake = [tmpHead, ...currentState.snake.slice(0, -1)]
     //fruit collision
-    //todo: all collisions in one function
-    if (compareCells(tmpHead, currentState.bonusFood)) {
-        console.log(" + +++")
-        // return {...currentState, snake: snake, score: currentState.score,
-        //     direction: direction, bonusFood: bonusFood, lives: currentState.lives + 1, bonusFoodTimer: false}
+    if (compareCells(tmpHead, currentState.healthBox)) {
         return {
             ...currentState, snake: snake, score: currentState.score,
-            direction: direction, lives: currentState.lives + 1, bonusFoodTimer: false, collision: currentState.collision
+            direction: direction, lives: currentState.lives + 1, isHealthBox: false, collision: currentState.collision
         }
     }
-    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 || compareCells(tmpHead, currentState.bonusFood)) {
+    if (compareCells(tmpHead, currentState.food) || currentState.foodX2Count > 0 || compareCells(tmpHead, currentState.healthBox)) {
         const food = getEmptyCell(currentState)
         const score = currentState.score + 1
         const snake = [tmpHead, ...currentState.snake]
@@ -173,8 +173,10 @@ const getNextGameState = (currentState, direction) => {
         const foodX2 = getEmptyCell(currentState)
         const score = currentState.score * 2
         const snake = [tmpHead, ...currentState.snake]
-        return {...currentState, snake: snake, foodX2: foodX2, score: score, foodX2Count: 5, direction: direction,
-            collision: currentState.collision}
+        return {
+            ...currentState, snake: snake, foodX2: foodX2, score: score, foodX2Count: 5, direction: direction,
+            collision: currentState.collision
+        }
     }
 
     return {...currentState, snake: snake, direction: direction, collision: currentState.collision}
@@ -240,10 +242,11 @@ const drawCross = (ctx, collision) => {
 
     // Линия от нижнего левого к верхнему правому
     ctx.beginPath();
-    ctx.moveTo(collision.x * CELLSIZE + CELLSIZE , collision.y * CELLSIZE);
+    ctx.moveTo(collision.x * CELLSIZE + CELLSIZE, collision.y * CELLSIZE);
     ctx.lineTo(collision.x * CELLSIZE, collision.y * CELLSIZE + CELLSIZE);
     ctx.stroke();
 }
+
 
 const renderGame = (canvas, state, seconds) => {
     const ctx = canvas.getContext('2d')
@@ -261,15 +264,14 @@ const renderGame = (canvas, state, seconds) => {
         drawCell(ctx, state.walls[i], 'blue')
     }
     drawCell(ctx, state.foodX2, 'green')
-    if (state.bonusFoodTimer === true) { //collusion not
-        drawCell(ctx, state.bonusFood, 'purple')
-        //todo: add timerTime
+    if (state.isHealthBox === true) { //collusion not
+        drawCell(ctx, state.healthBox, 'purple')
         ctx.font = '20px Arial'
         ctx.fillStyle = 'white'
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        const textX = state.bonusFood.x * CELLSIZE + CELLSIZE / 2
-        const textY = state.bonusFood.y * CELLSIZE + CELLSIZE / 2
+        const textX = state.healthBox.x * CELLSIZE + CELLSIZE / 2
+        const textY = state.healthBox.y * CELLSIZE + CELLSIZE / 2
         ctx.fillText(`${seconds}`, textX, textY)
     }
     if (!compareCells(state.collision, {x: -1, y: -1})) {
@@ -296,7 +298,7 @@ const keyToDirection = {
 
 const Game = () => {
     const [gameState, setGameState] = useState(() => createInitialState())
-    const [seconds, setSeconds] = useState(COUNTDOWN) //todo: rename
+    const [seconds, setSeconds] = useState(HEALTHBOXTIME)
     const canvasRef = useRef(null)
     const directionRef = useRef(INITDIRECTION)
 
@@ -323,7 +325,7 @@ const Game = () => {
         const handleKeyDown = (e) => {
             if (e.code === "Space") {
                 setGameState((gameState) => {
-                    return {...gameState, status: gameState.status === "active" ? "pause" : "active"}
+                    return {...gameState, status: gameState.status === "active" ? "pause" : "active", hasMessage: false}
                 })
                 return
             }
@@ -348,67 +350,57 @@ const Game = () => {
     useEffect(() => {
         if (gameState.lives < 3) {
             const bonusFoodTimer = setTimeout(() => {
-                // console.log(gameState.bonusFood, " bonusFoodTimerEffect")
-                setSeconds(COUNTDOWN)
+                setSeconds(HEALTHBOXTIME)
                 setGameState((currentGameState) => {
                     const newFood = getEmptyCell(gameState)
-                    return {...currentGameState, bonusFoodTimer: true, bonusFood: newFood}
-                    // return {...currentGameState, bonusFoodTimer: true}
-
+                    return {...currentGameState, isHealthBox: true, healthBox: newFood}
                 })
             }, 1000) //delay
             return () => clearTimeout(bonusFoodTimer)
         }
-    }, [gameState.lives]) //add bonusfood collision //+1 live
+    }, [gameState.lives])
 
     useEffect(() => {
         const interval = setInterval(() => {
             setSeconds(prevSeconds => {
                 if (prevSeconds <= 1) {
-                    setGameState((currentGameState) => ({...currentGameState, bonusFoodTimer: false}))
-                    return COUNTDOWN
+                    setGameState((currentGameState) => ({...currentGameState, isHealthBox: false}))
+                    return HEALTHBOXTIME
                 }
                 return prevSeconds - 1
             })
         }, 1000)
         return () => clearInterval(interval)
-    }, [gameState.bonusFoodTimer, gameState.status])
+    }, [gameState.isHealthBox, gameState.status])
 
     // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         setSeconds(prevSeconds => prevSeconds - 1 < 0 ? 0 : prevSeconds - 1)
-    //     }, 1000) //countdown
-    //     return () => {
-    //         clearInterval(interval)
-    //         setSeconds(7)
+    //     if (!gameState.isCollision) return
+    //     console.log("Oops... You need to change direction and press the space bar")
+    //     setGameState(currentGameState => ({...currentGameState, status: "active", hasMessage: true}))
+    //     // setGameState(currentGameState => ({...currentGameState, isCollision: false, hasMessage: false}))
+    // }, [gameState.isCollision])
+
+    // useEffect(() => {
+    //     if (gameState.isCollision && gameState.status === "pause") {
+    //         return () => setGameState(currentGameState => ({...currentGameState, hasMessage: true}))
     //     }
-    // }, [])
+    //     return () => setGameState(currentGameState => ({...currentGameState, hasMessage: false}))
+    // }, [gameState.isCollision, gameState.status])
 
-    // useEffect(() => {
-    //     if (seconds !== 0) return //todo: if no timer square
-    //     setGameState(currentGameState => ({...currentGameState, bonusFoodTimer: false}))
-    // }, [seconds])
-
-
-
-    useEffect(() => {
-        if (!gameState.isCollision) return
-        const delay3Seconds = setTimeout(() => {
-            console.log("Oops... You need to change direction and press the space bar") //todo: message
-            setGameState(currentGameState => ({...currentGameState, status: "active"}))
-        }, 3000)
-        return () => {
-            clearTimeout(delay3Seconds)
-            setGameState(currentGameState => ({...currentGameState, isCollision: false}))
+    const changeMap = () => {
+        if (gameState.walls === WALLSMAP[WALLSMAP.length - 1]) {
+            setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[0], wallsMapNumber: 0}))
         }
-    }, [gameState.isCollision])
-
+        setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[currentGameState.wallsMapNumber + 1]}))
+    }
 
     return (
         <section>
+            <button onClick={() => changeMap()}>Change map</button>
             <h1 className="text-green-600">Snake</h1>
             <h2>Score: {gameState.score}</h2>
             <h2 className={`text-` + gameState.statusColor + `-600`}>Status: {gameState.status}</h2>
+            <h3>hasMessage: {gameState.hasMessage ? "true" : "false"}</h3>
             <div>
                 <input type="checkbox" id="option1" checked={gameState.strictMode}
                        onChange={() => setGameState(gameState => ({...gameState, strictMode: !gameState.strictMode}))}/>
@@ -420,6 +412,7 @@ const Game = () => {
             </div>
             <canvas className="border-2 border-gray-800 rounded lg" ref={canvasRef} width={COLUMNS * CELLSIZE}
                     height={ROWS * CELLSIZE}/>
+            {gameState.hasMessage && <p>Oops... You need to change direction and press the space bar</p>}
         </section>
     )
 }
