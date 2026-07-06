@@ -1,4 +1,5 @@
 import {useEffect, useState, useRef} from "react";
+import MapBuilder from "./MapBuilder.jsx";
 
 const CELLSIZE = 30
 const COLUMNS = 20
@@ -387,16 +388,17 @@ const Game = () => {
     //     return () => setGameState(currentGameState => ({...currentGameState, hasMessage: false}))
     // }, [gameState.isCollision, gameState.status])
 
-    const changeMap = () => {
-        if (gameState.walls === WALLSMAP[WALLSMAP.length - 1]) {
-            setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[0], wallsMapNumber: 0}))
-        }
-        setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[currentGameState.wallsMapNumber + 1]}))
-    }
+    // const changeMap = () => {
+    //     if (gameState.walls === WALLSMAP[WALLSMAP.length - 1]) {
+    //         setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[0], wallsMapNumber: 0}))
+    //     }
+    //     setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[currentGameState.wallsMapNumber + 1]}))
+    // }
+
 
     return (
         <section>
-            <button onClick={() => changeMap()}>Change map</button>
+            {/*<button onClick={() => changeMap()}>Change map</button>*/}
             <h1 className="text-green-600">Snake</h1>
             <h2>Score: {gameState.score}</h2>
             <h2 className={`text-` + gameState.statusColor + `-600`}>Status: {gameState.status}</h2>
