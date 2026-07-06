@@ -31,7 +31,6 @@ const renderGame = (canvas) => {
 }
 
 
-
 const MapBuilder = () => {
     const canvasRef = useRef(null)
     const [walls, setWalls] = useState(Array(COLUMNS).fill().map(() => Array(ROWS).fill(null)))
