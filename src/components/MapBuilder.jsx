@@ -1,8 +1,8 @@
 import {useEffect, useRef, useState} from "react";
 
 const CELLSIZE = 30
-const COLUMNS = 5
-const ROWS = 5
+const COLUMNS = 20
+const ROWS = 10
 
 const drawGrid = (ctx) => {
     ctx.beginPath()
@@ -19,7 +19,8 @@ const drawGrid = (ctx) => {
     ctx.stroke()
 }
 
-const drawCell = (ctx, cell, color) => {
+const drawCell = (canvas, cell, color) => {
+    const ctx = canvas.getContext('2d')
     ctx.fillStyle = color
     ctx.fillRect(cell.x * CELLSIZE, cell.y * CELLSIZE, CELLSIZE, CELLSIZE)
 }
@@ -33,7 +34,7 @@ const renderGame = (canvas) => {
 
 const MapBuilder = () => {
     const canvasRef = useRef(null)
-    const [walls, setWalls] = useState(Array(COLUMNS).fill().map(() => Array(ROWS).fill(null)))
+    const [walls, setWalls] = useState(Array(COLUMNS).fill().map(() => Array(ROWS).fill('')))
 
     useEffect(() => {
         renderGame(canvasRef.current)
@@ -53,15 +54,18 @@ const MapBuilder = () => {
         if (col >= 0 && col < CELLSIZE && row >= 0 && row < CELLSIZE) {
             setWalls((prevWalls) => { //switch color
                 const newWalls = [...prevWalls]
-                // console.log(newWalls[row][col], "newWalls[row][col]")
-                newWalls[row][col] = newWalls[row][col] === 'red' ? null : 'red'
-                if (newWalls[col][col] === 'null') {
+                console.log(newWalls, " newWalls")
+                console.log(newWalls[row][col], "newWalls[row][col]")
+                newWalls[row][col] = newWalls[row][col] === 'red' ? '' : 'red'
+                if (newWalls[col][col] === '') {
                     newWalls[row][col] = 'red'
-                    drawCell(canvasRef.current, newWalls[row][col], 'red')
+                    console.log(" ++")
+                    drawCell(canvasRef.current, {x: row, y: col}, 'red')
                 }
                 else {
-                    newWalls[row][col] = null
-                    drawCell(canvasRef.current, newWalls[row][col], 'white')
+                    console.log("---")
+                    newWalls[row][col] = ''
+                    drawCell(canvasRef.current, {x: row, y: col}, 'white')
                 }
                 return newWalls
             })
