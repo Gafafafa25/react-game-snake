@@ -25,19 +25,26 @@ const drawCell = (canvas, cell, color) => {
     ctx.fillRect(cell.x * CELLSIZE, cell.y * CELLSIZE, CELLSIZE, CELLSIZE)
 }
 
-const renderGame = (canvas) => {
+const renderGame = (canvas, walls) => {
     const ctx = canvas.getContext('2d')
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     drawGrid(ctx)
+    for (let row = 0; row < walls.length; row++) {
+        for (let col = 0; col < walls[row].length; col++) {
+            if (walls[row][col] === "red") {
+                drawCell(canvas, {x: col, y: row}, "red")
+            }
+        }
+    }
 }
 
 
 const MapBuilder = () => {
     const canvasRef = useRef(null)
-    const [walls, setWalls] = useState(Array(COLUMNS).fill().map(() => Array(ROWS).fill('')))
+    const [walls, setWalls] = useState(Array(ROWS).fill().map(() => Array(COLUMNS).fill('')))
 
     useEffect(() => {
-        renderGame(canvasRef.current)
+        renderGame(canvasRef.current, walls)
     }, [walls])
 
     const handleClick = (e) => {
@@ -51,22 +58,10 @@ const MapBuilder = () => {
         console.log(row, "row")
         console.log(col, "col")
 
-        if (col >= 0 && col < CELLSIZE && row >= 0 && row < CELLSIZE) {
+        if (col >= 0 && col < COLUMNS && row >= 0 && row < ROWS) {
             setWalls((prevWalls) => { //switch color
-                const newWalls = [...prevWalls]
-                console.log(newWalls, " newWalls")
-                console.log(newWalls[row][col], "newWalls[row][col]")
-                newWalls[row][col] = newWalls[row][col] === 'red' ? '' : 'red'
-                if (newWalls[col][col] === '') {
-                    newWalls[row][col] = 'red'
-                    console.log(" ++")
-                    drawCell(canvasRef.current, {x: row, y: col}, 'red')
-                }
-                else {
-                    console.log("---")
-                    newWalls[row][col] = ''
-                    drawCell(canvasRef.current, {x: row, y: col}, 'white')
-                }
+                const newWalls = prevWalls.map((r) => [...r])
+                newWalls[row][col] = newWalls[row][col] === '' ? 'red' : ''
                 return newWalls
             })
         }
