@@ -42,10 +42,19 @@ const renderGame = (canvas, walls) => {
 const MapBuilder = () => {
     const canvasRef = useRef(null)
     const [walls, setWalls] = useState(Array(ROWS).fill().map(() => Array(COLUMNS).fill('')))
+    const [wallsCoords, setWallsCoords] = useState([])
 
     useEffect(() => {
         renderGame(canvasRef.current, walls)
     }, [walls])
+
+    // useEffect(() => {
+    //     localStorage.setItem('walls', JSON.stringify(wallsCoords))
+    // }, [wallsCoords])
+    //
+    // const stored = localStorage.getItem('wallsCoords')
+    // const parsedArray = stored ? JSON.parse(stored) : []
+    // console.log(parsedArray)
 
     const handleClick = (e) => {
         const rect = canvasRef.current.getBoundingClientRect()
@@ -55,13 +64,15 @@ const MapBuilder = () => {
 
         const col = Math.floor(x / CELLSIZE) //current col
         const row = Math.floor(y / CELLSIZE) //current row
-        console.log(row, "row")
-        console.log(col, "col")
+        // console.log(row, "row")
+        // console.log(col, "col")
 
         if (col >= 0 && col < COLUMNS && row >= 0 && row < ROWS) {
             setWalls((prevWalls) => { //switch color
                 const newWalls = prevWalls.map((r) => [...r])
                 newWalls[row][col] = newWalls[row][col] === '' ? 'red' : ''
+                setWallsCoords((prevCoords) => [...prevCoords, {x: row, y: col}])
+                console.log(wallsCoords, " wallscoords")
                 return newWalls
             })
         }

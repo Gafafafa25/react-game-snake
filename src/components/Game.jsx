@@ -21,6 +21,7 @@ const WALLSMAP = [
     [{x: 2, y: 2}, {x: 2, y: 3}],
     [{x: 2, y: 2}]
 ]
+// const WALLSMAP ; //todo:
 const WALLMAPNUMBER = 0
 const WALLS = WALLSMAP[WALLMAPNUMBER]
 
@@ -302,6 +303,7 @@ const Game = () => {
     const [seconds, setSeconds] = useState(HEALTHBOXTIME)
     const canvasRef = useRef(null)
     const directionRef = useRef(INITDIRECTION)
+    // const [showMapBuilder, setShowMapBuilder] = useState(false)
 
     useEffect(() => { //main
         const intervalId = setInterval(() => {
@@ -398,7 +400,7 @@ const Game = () => {
 
     return (
         <section>
-            {/*<button onClick={() => changeMap()}>Change map</button>*/}
+            {/*<button onClick={() => setShowMapBuilder(!showMapBuilder)}>Change map</button>*/}
             <h1 className="text-green-600">Snake</h1>
             <h2>Score: {gameState.score}</h2>
             <h2 className={`text-` + gameState.statusColor + `-600`}>Status: {gameState.status}</h2>
