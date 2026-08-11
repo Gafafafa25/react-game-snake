@@ -16,14 +16,15 @@ const LIVES = 3
 const HEALTHBOX = 0
 const ISHEALTHBOX = false
 const HEALTHBOXTIME = 7
-const WALLSMAP = [
-    [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}],
-    [{x: 2, y: 2}, {x: 2, y: 3}],
-    [{x: 2, y: 2}]
-]
-// const WALLSMAP ; //todo:
-const WALLMAPNUMBER = 0
-const WALLS = WALLSMAP[WALLMAPNUMBER]
+// const WALLSMAP = [
+//     [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}],
+//     [{x: 2, y: 2}, {x: 2, y: 3}],
+//     [{x: 2, y: 2}]
+// ]
+// const WALLSMAP = localStorage.getItem('walls')
+// const WALLMAPNUMBER = 0
+// const WALLS = WALLSMAP[WALLMAPNUMBER]
+const WALLS = JSON.parse(localStorage.getItem('walls'))
 
 const compareCells = (cell1, cell2) => {
     return cell1.x === cell2.x && cell1.y === cell2.y
@@ -38,7 +39,7 @@ const createInitialState = () => {
     return {
         snake: INITSNAKE,
         walls: WALLS,
-        wallsMapNumber: WALLMAPNUMBER,
+        // wallsMapNumber: WALLMAPNUMBER,
         food: FOOD,
         foodX2: FOODX2,
         foodX2Count: FOODX2COUNT,
