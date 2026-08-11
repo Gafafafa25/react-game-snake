@@ -142,7 +142,7 @@ const getNextGameState = (currentState, direction) => {
             return {
                 ...currentState,
                 isCollision: true,
-                hasMessage: true, //todo: hasMessage, collision
+                hasMessage: true,
                 collision: tmpHead,
                 lives: currentState.lives - 1,
                 status: "pause",
@@ -264,7 +264,9 @@ const renderGame = (canvas, state, seconds) => {
     }
     drawCell(ctx, state.food, 'red')
     for (let i = 0; i < state.walls.length; i++) {
-        drawCell(ctx, state.walls[i], 'blue')
+        for (let j = 0; j < state.walls[i].length; j++) {
+            drawCell(ctx, state.walls[i][j], 'blue')
+        }
     }
     drawCell(ctx, state.foodX2, 'green')
     if (state.isHealthBox === true) { //collusion not
