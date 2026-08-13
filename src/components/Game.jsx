@@ -7,7 +7,6 @@ const ROWS = 10
 const GAMESPEED = 200
 const INITSNAKE = [{x: 7, y: 6}, {x: 6, y: 6}, {x: 5, y: 6}]
 const INITDIRECTION = {dx: 1, dy: 0}
-// const WALLS = [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}]
 const FOOD = {x: 4, y: 4}
 const FOODX2 = {x: 8, y: 8}
 const FOODX2COUNT = 0
@@ -16,14 +15,6 @@ const LIVES = 3
 const HEALTHBOX = 0
 const ISHEALTHBOX = false
 const HEALTHBOXTIME = 7
-// const WALLSMAP = [
-//     [{x: 2, y: 2}, {x: 2, y: 3}, {x: 2, y: 4}],
-//     [{x: 2, y: 2}, {x: 2, y: 3}],
-//     [{x: 2, y: 2}]
-// ]
-// const WALLSMAP = localStorage.getItem('walls')
-// const WALLMAPNUMBER = 0
-// const WALLS = WALLSMAP[WALLMAPNUMBER]
 const WALLS = JSON.parse(localStorage.getItem('walls'))
 
 const compareCells = (cell1, cell2) => {
@@ -39,7 +30,6 @@ const createInitialState = () => {
     return {
         snake: INITSNAKE,
         walls: WALLS,
-        // wallsMapNumber: WALLMAPNUMBER,
         food: FOOD,
         foodX2: FOODX2,
         foodX2Count: FOODX2COUNT,
@@ -118,7 +108,6 @@ const getEmptyCell = (currentState) => {
 
 const getNextGameState = (currentState, direction) => {
     const tmpHead = getNextHead(currentState.snake[0], direction, currentState.strictMode)
-    // console.log(tmpHead, " tmpHead")
     if (isOutside(tmpHead) && currentState.strictMode === true) {
         return {
             ...currentState, isCollision: true, lives: currentState.lives - 1, status: "pause", statusColor: "blue",
@@ -138,15 +127,18 @@ const getNextGameState = (currentState, direction) => {
         }
     }
     for (let i = 0; i < currentState.walls.length; i++) {
-        if (compareCells(tmpHead, currentState.walls[i])) {
-            return {
-                ...currentState,
-                isCollision: true,
-                hasMessage: true,
-                collision: tmpHead,
-                lives: currentState.lives - 1,
-                status: "pause",
-                statusColor: "blue"
+        for (let j = 0; j < currentState.walls[i].length; j++) {
+            if (compareCells(tmpHead, currentState.walls[i][j])) {
+                console.log("walls here ++")
+                return {
+                    ...currentState,
+                    isCollision: true,
+                    hasMessage: true,
+                    collision: tmpHead,
+                    lives: currentState.lives - 1,
+                    status: "pause",
+                    statusColor: "blue"
+                }
             }
         }
     }
@@ -306,7 +298,6 @@ const Game = () => {
     const [seconds, setSeconds] = useState(HEALTHBOXTIME)
     const canvasRef = useRef(null)
     const directionRef = useRef(INITDIRECTION)
-    // const [showMapBuilder, setShowMapBuilder] = useState(false)
 
     useEffect(() => { //main
         const intervalId = setInterval(() => {
@@ -378,28 +369,6 @@ const Game = () => {
         }, 1000)
         return () => clearInterval(interval)
     }, [gameState.isHealthBox, gameState.status])
-
-    // useEffect(() => {
-    //     if (!gameState.isCollision) return
-    //     console.log("Oops... You need to change direction and press the space bar")
-    //     setGameState(currentGameState => ({...currentGameState, status: "active", hasMessage: true}))
-    //     // setGameState(currentGameState => ({...currentGameState, isCollision: false, hasMessage: false}))
-    // }, [gameState.isCollision])
-
-    // useEffect(() => {
-    //     if (gameState.isCollision && gameState.status === "pause") {
-    //         return () => setGameState(currentGameState => ({...currentGameState, hasMessage: true}))
-    //     }
-    //     return () => setGameState(currentGameState => ({...currentGameState, hasMessage: false}))
-    // }, [gameState.isCollision, gameState.status])
-
-    // const changeMap = () => {
-    //     if (gameState.walls === WALLSMAP[WALLSMAP.length - 1]) {
-    //         setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[0], wallsMapNumber: 0}))
-    //     }
-    //     setGameState(currentGameState => ({...currentGameState, walls: WALLSMAP[currentGameState.wallsMapNumber + 1]}))
-    // }
-
 
     return (
         <section>

@@ -53,7 +53,7 @@ const MapBuilder = () => {
         for (let i = 0; i < walls.length; i++) {
             for (let j = 0; j < walls[i].length; j++) {
                 if (walls[i][j] === 'red') {
-                    _walls[0].push({x: i, y: j})
+                    _walls[0].push({x: j, y: i})
                 }
             }
         }
