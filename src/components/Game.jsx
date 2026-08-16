@@ -372,16 +372,15 @@ const Game = () => {
 
     return (
         <section>
-            {/*<button onClick={() => setShowMapBuilder(!showMapBuilder)}>Change map</button>*/}
-            <h1 className="text-green-600">Snake</h1>
+            <button onClick={() => window.location.reload()} style={{border: '2px solid gray', borderRadius: '6px', padding: '10px 20px'}}>Reload page</button>
+            <h1 className="text-black-600">SNAKE</h1>
             <h2>Score: {gameState.score}</h2>
             <h2 className={`text-` + gameState.statusColor + `-600`}>Status: {gameState.status}</h2>
-            <h3>hasMessage: {gameState.hasMessage ? "true" : "false"}</h3>
+            {/*<h3>hasMessage: {gameState.hasMessage ? "true" : "false"}</h3>*/}
             <div>
                 <input type="checkbox" id="option1" checked={gameState.strictMode}
                        onChange={() => setGameState(gameState => ({...gameState, strictMode: !gameState.strictMode}))}/>
                 <label htmlFor="option1"> Strict boundaries</label>
-
             </div>
             <div>
                 Lives: {"💛".repeat(gameState.lives)}

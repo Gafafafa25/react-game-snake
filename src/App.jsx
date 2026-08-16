@@ -7,10 +7,9 @@ function App() {
 
     return (
         <>
-            <button onClick={() => setShowMapBuilder(!showMapBuilder)}>Change map</button>
+
+            <button onClick={() => setShowMapBuilder(!showMapBuilder)} style={{color: '#4a90e2', margin: '5px'}}>Change map</button>
             {showMapBuilder ? <MapBuilder /> : <Game />}
-            {/*<Game/>*/}
-            {/*<MapBuilder/>*/}
         </>
     )
 }

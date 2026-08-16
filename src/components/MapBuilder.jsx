@@ -69,14 +69,11 @@ const MapBuilder = () => {
 
         const col = Math.floor(x / CELLSIZE) //current col
         const row = Math.floor(y / CELLSIZE) //current row
-        console.log(row, "row")
-        console.log(col, "col")
 
         if (col >= 0 && col < COLUMNS && row >= 0 && row < ROWS) {
             setWalls((prevWalls) => { //switch color
                 const newWalls = prevWalls.map((r) => [...r])
                 newWalls[row][col] = newWalls[row][col] === '' ? 'red' : ''
-                // console.log(newWalls, "new walls")
                 return newWalls
             })
         }
