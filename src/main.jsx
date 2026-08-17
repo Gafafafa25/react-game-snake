@@ -11,10 +11,10 @@ createRoot(document.getElementById('root')).render(
     {/*<App />*/}
       <BrowserRouter>
           <Routes>
-            <Route path="/" component={App} />
+            <Route path="/" element={<App />} />
             {/*<Route path="/" element={<App />} />*/}
             <Route index element={<Game />} />
-            <Route path='/mapBuilder' component={MapBuilder} />
+            <Route path='/mapBuilder' element={<MapBuilder />} />
           </Routes>
       </BrowserRouter>
   </StrictMode>,
