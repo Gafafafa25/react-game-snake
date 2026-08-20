@@ -81,6 +81,7 @@ const MapBuilder = () => {
 
     return (
         <section className="map">
+            <h1>MAP</h1>
             <canvas className="border-2 border-gray-800 rounded lg"
                     ref={canvasRef}
                     width={COLUMNS * CELLSIZE}
